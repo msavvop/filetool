@@ -101,7 +101,8 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
 
 
 
-            for (int i=List.size()-2;i==0;i--)
+            for (int i=0;i<(List.size())-1;i++)
+
             {
                 index=dirModel->index(List[i]);
 

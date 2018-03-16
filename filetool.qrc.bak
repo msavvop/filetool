@@ -28,6 +28,5 @@
         <file>images/go-home.png</file>
         <file>images/view-list-text.png</file>
         <file>images/computer.png</file>
-        <file>images/trash-empty.png</file>        
     </qresource>
 </RCC>
