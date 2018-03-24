@@ -471,12 +471,33 @@ void filetool::closeEvent(QCloseEvent *event)
 
 void filetool::on_actionDirectory_triggered()
 {
+
+
     parentDirIndex= indexHistoryList.last();
+    QString ParentDir_name=dirModel->filePath(parentDirIndex);
     QModelIndex index= dirModel->mkdir( parentDirIndex,"New Directory");
 
     dirModel->setReadOnly(false);
 
     ui->tableView->edit(index);
+
+    QString katalog_name=dirModel->filePath(index);
+    std::cerr<<"in Create Dir new Dir name"<<qPrintable (katalog_name)<<std::endl;
+
+     List.clear();
+
+     List.push_back(katalog_name);
+
+     command.set_UndoRedoCommand("create_dir");
+     command.set_UndoRedoList(List);
+     command.set_UndoRedoSourceDir(ParentDir_name);
+     command.set_UndoRedoTargetDir(katalog_name);
+
+//    QString New_katalog_name=dirModel->filePath(index);
+
+//    std::cout<<qPrintable(Old_katalog_name)<<endl;
+
+    undovector.push_back(command);
 
 }
 
@@ -484,20 +505,54 @@ void filetool::on_actionDirectory_triggered()
 
 void filetool::on_action_rename_triggered()
 {
+    parentDirIndex= indexHistoryList.last();
+    QString ParentDir_name=dirModel->filePath(parentDirIndex);
+    std::cerr<<"AT RENAME ParentDir_name="<<qPrintable(ParentDir_name)<<std::endl;
+
+    if (selModel->selectedIndexes().size()!=1) return;
+
+
 
     QStringList selected=selectedFiles();
-    dirModel->setReadOnly(false);
 
     if (selected.size()!=1) return;
     QString selectedItem=selected.at(0);
 
-/*    QMessageBox *box;
-    box->information(this,tr("count=%1\t row=%2").arg(selectedItem),tr("%1").arg(selectedItem),tr("ok"));
-*/
+
+    std::cerr<<"AT RENAME selected item"<<qPrintable(selectedItem)<<std::endl;
+
     QModelIndex index=dirModel->index(selectedItem);
+
+
+
+
+
+    dirModel->setReadOnly(false);
 
     ui->tableView->edit(index);
 
+    if(!index.isValid()) return;
+    QString newname;
+
+    newname= dirModel->filePath(index);
+
+
+    std::cerr<<"AT RENAME New_katalog_name="<<qPrintable(newname)<<std::endl;
+
+     List.clear();
+
+     List.push_back(selectedItem);
+
+     command.set_UndoRedoCommand("rename");
+     command.set_UndoRedoList(List);
+     command.set_UndoRedoSourceDir(ParentDir_name);
+     command.set_UndoRedoTargetDir(newname);
+
+//    QString newname=dirModel->filePath(index);
+
+//    std::cout<<"AT RENAME new katalog name="<<qPrintable(newname)<<std::endl;
+
+      undovector.push_back(command);
 }
 
 
@@ -505,6 +560,7 @@ void filetool::on_action_rename_triggered()
 void filetool::on_lineEdit_textChanged(const QString &arg1)
 {
     newPath=arg1;
+//    std::cout<<qPrintable(newPath)<<endl;
 }
 
 void filetool::on_pushButton_clicked()
@@ -568,32 +624,24 @@ void filetool::on_action_delete_triggered()
 {
     QModelIndex Index;
 
+    List.clear();
 
     List=selectedFiles();
 
 
     Index=indexHistoryList.last();
-    List.append(dirModel->filePath(Index));
+    List.append(dirModel->filePath(Index));//  carefull because I add the path of the current directory as a last element
+                                            //in this list and you do not want to delete that.
 
     QMessageBox *box1;
-    int r=box1->question(this,tr("Confirm Deletion"),tr("Are you sure that you want to Delete %1 items?").arg(List.size()-1),
+    int r=box1->question(this,tr("Confirm Deletion"),tr("Are you sure that you want to Delete %1 items? "
+                                                        "Removing them is permanent and cannot be undone").arg(List.size()-1),
                    QMessageBox::Yes,QMessageBox::No|QMessageBox::Default|QMessageBox::Escape);
 
     if(r==QMessageBox::Yes)
     {
 
-        QString str="delete";
-        PasteDialog *DeleteDialog;
-        DeleteDialog=new PasteDialog(this);
-        DeleteDialog->setAction(str,List);
-        busy=true;
-
-
-        DeleteDialog->show();
-        DeleteDialog->raise();
-        DeleteDialog->activateWindow();
-        connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-        connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
+        Delete();
 
     }
 
@@ -603,7 +651,10 @@ void filetool::on_action_delete_triggered()
 void filetool::on_action_cut_triggered()
 {
 
+    QModelIndex Index;
 
+    Index=indexHistoryList.last();
+    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm move action"),tr("Are you sure that you want to move %1 items?").arg(selModel->selectedIndexes().size()),
@@ -613,7 +664,16 @@ void filetool::on_action_cut_triggered()
     {
         copyIndicator=false;
 
-       List=selectedFiles();
+        List.clear();
+
+        List=selectedFiles();
+
+         command.set_UndoRedoSourceDir(ParentDir_name);
+
+
+
+
+//       std::cerr<<"AT CUT selected item"<<qPrintable(List.at(0))<<endl;
 /*        QMessageBox *box;
        for (int i=0;i<List.size();i++)
        {
@@ -632,7 +692,10 @@ void filetool::on_action_cut_triggered()
 
 void filetool::on_actionC_opy_triggered()
 {
+    QModelIndex Index;
 
+    Index=indexHistoryList.last();
+    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm copy action"),tr("Are you sure that you want to copy %1 items?").arg(selModel->selectedIndexes().size()),
@@ -641,8 +704,13 @@ void filetool::on_actionC_opy_triggered()
     if(r==QMessageBox::Yes)
     {
         copyIndicator=true;
+        command.set_UndoRedoSourceDir(ParentDir_name);
 
+        List.clear();
         List=selectedFiles();
+
+//       std::cerr<<"AT COPY selected item"<<qPrintable(List.at(0))<<endl;
+
 /*        QMessageBox *box;
         for (int i=0;i<List.size();i++)
         {
@@ -650,7 +718,6 @@ void filetool::on_actionC_opy_triggered()
         box->information(this,tr("List[0]=  %1").arg(List[0]),tr("ok"));
         }
         */
-
     }
 }
 
@@ -660,51 +727,574 @@ void filetool::on_action_paste_triggered()
 
 
     Index=indexHistoryList.last();
-    List.append(dirModel->filePath(Index));
+    QString newname=dirModel->filePath(Index);
+    List.append(newname);
+
+    std::cerr <<" AT PASTE CopyList[0]=\t"<<qPrintable( List[0])<<std::endl;
     dirModel->setReadOnly(false);
-
-
 
     if(copyIndicator==true)
     {
-        busy=true;
-        QString str1="copy";
-        PasteDialog *CopyDialog;
-        CopyDialog=new PasteDialog(this);
-        CopyDialog->setAction(str1,List);
+        Copy();
 
-         CopyDialog->show();
-         CopyDialog->raise();
-        CopyDialog->activateWindow();
-        connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-        connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
-
-//        CopyDialog->exec();
-
+        command.set_UndoRedoCommand("copy");
+        command.set_UndoRedoList(List);
+        command.set_UndoRedoTargetDir(newname);
     }
     else
     {
-        busy=true;
-        QString str2="cut";
-        PasteDialog *CutDialog;
-        CutDialog=new PasteDialog(this);
-        CutDialog->setAction(str2,List);
+        Cut();
 
-
-       CutDialog->show();
-        CutDialog->raise();
-      CutDialog->activateWindow();
-       connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-        connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
-
-//    CutDialog->exec();
-
+        command.set_UndoRedoCommand("cut");
+        command.set_UndoRedoList(List);
+        command.set_UndoRedoTargetDir(newname);
     }
+
+    undovector.push_back(command);
 }
 
 
 void filetool::on_actionAbout_triggered()
 {
     QMessageBox *box;
-    box->information(this,tr("Filetool"),tr("This Program is Created by Mihail Savvopoulos using Qt"),QMessageBox::Ok);
+    box->information(this,tr("Filetool"),tr("This Program is Created by Mihail Savvopoulos using Qt. "
+                                            "The icons were taken from Linux. I think it was Ubuntu or Mint."),QMessageBox::Ok);
+}
+
+
+void filetool::on_actionRe_do_triggered()
+{
+    QStringList List1;
+    QString SourceDir;
+    QString TargetDir;
+
+    if(redovector.isEmpty()) return;
+
+    PreviousObject=redovector.last();
+    redovector.pop_back();
+
+
+    if ((undovector.isEmpty())||(undovector.last()!=PreviousObject))
+    {
+
+            undovector.push_back(PreviousObject);
+
+
+    }
+
+
+    if(redovector.isEmpty())
+    {
+        if (PreviousObject.get_UndoRedoCommand()=="create_dir")
+        {
+            std::cerr<<"Redo create_dir under construction"<<std::endl;
+    /*
+            List.clear();
+            List1= PreviousObject.get_UndoRedoList();
+            SourceDir=PreviousObject.get_UndoRedoSourceDir();
+            TargetDir=PreviousObject.get_UndoRedoTargetDir();
+
+
+            QModelIndex parentDirIndex=dirModel->index(SourceDir);
+            QString name=TargetDir.replace(SourceDir,"");
+            name=name.replace("/","");
+            QModelIndex index= dirModel->mkdir( parentDirIndex,name);
+   */
+        }
+        else if (PreviousObject.get_UndoRedoCommand()=="rename")
+        {
+            std::cerr<<"Redo rename under construction"<<std::endl;
+    /*
+
+            List.clear();
+            List1= PreviousObject.get_UndoRedoList();
+            SourceDir=PreviousObject.get_UndoRedoSourceDir();
+            TargetDir=PreviousObject.get_UndoRedoTargetDir();
+
+
+            std::cerr<<"SourceDir="<<qPrintable(SourceDir)<<std::endl;
+            std::cerr<<"TargetDir="<<qPrintable(TargetDir)<<std::endl;
+            std::cerr<<"old name="<<qPrintable(List1[0])<<std::endl;
+
+            QModelIndex Index=dirModel->index(SourceDir);
+
+            QString name=TargetDir;
+            name=name.replace(SourceDir,"");
+            name=name.replace("/","");
+            std::cerr<<"name of Dir redone to the new one again="<<qPrintable(name)<<std::endl;
+
+
+            dirModel->setReadOnly(false);
+            QModelIndex index1= dirModel->mkdir(Index,name); // create again new dir to redo command
+            if (!index1.isValid())
+            {
+                std::cerr<<"could not create Dir in undo"<<std::endl;
+                return;
+            }
+
+            QString newdir=List1[0];
+            List1.clear();
+
+            for(int j=0;j<dirModel->rowCount(dirModel->index(newdir));j++)
+            {
+                QModelIndex sourceNewIndex=dirModel->index(j,0,dirModel->index(newdir));
+                const QString path3=dirModel->filePath(sourceNewIndex);
+                List1.append(path3);
+            }
+
+
+
+            List1.push_back(SourceDir);
+            List=List1;
+            Cut();
+
+            QStringList List2;
+            List2.append(TargetDir);
+            List2.append(SourceDir);
+            List=List2;
+            Delete();
+    */
+        }
+        else if (PreviousObject.get_UndoRedoCommand()=="cut")
+        {
+            List.clear();
+            List1= PreviousObject.get_UndoRedoList();
+            SourceDir=PreviousObject.get_UndoRedoSourceDir();
+            TargetDir=PreviousObject.get_UndoRedoTargetDir();
+            List1.pop_back();
+
+            List1.push_back(TargetDir);
+            List=List1;
+            Cut();
+        }
+        else if (PreviousObject.get_UndoRedoCommand()=="copy")
+        {
+            List.clear();
+            List1= PreviousObject.get_UndoRedoList();
+            SourceDir=PreviousObject.get_UndoRedoSourceDir();
+            TargetDir=PreviousObject.get_UndoRedoTargetDir();
+ //           List1.pop_back(); //TargetDir already in List1
+ //           List1.append(TargetDir);//TargetDir already in List1
+            List=List1;
+            Copy();
+
+        }
+
+
+        return;
+    }
+    else
+    {
+        NextObject=undovector.last();
+
+
+        if (NextObject.get_UndoRedoCommand()=="create_dir")
+        {
+            std::cerr<<"Redo create_dir under construction"<<std::endl;
+            /*
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+
+
+            QModelIndex parentDirIndex=dirModel->index(SourceDir);
+            QString name=TargetDir.replace(SourceDir,"");
+            name=name.replace("/","");
+            QModelIndex index= dirModel->mkdir( parentDirIndex,name);
+            */
+        }
+        else if (NextObject.get_UndoRedoCommand()=="rename")
+        {
+            std::cerr<<"Redo rename under construction"<<std::endl;
+    /*
+
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+
+
+            std::cerr<<"SourceDir="<<qPrintable(SourceDir)<<std::endl;
+            std::cerr<<"TargetDir="<<qPrintable(TargetDir)<<std::endl;
+            std::cerr<<"old name="<<qPrintable(List1[0])<<std::endl;
+
+            QModelIndex Index=dirModel->index(SourceDir);
+
+            QString name=TargetDir;
+            name=name.replace(SourceDir,"");
+            name=name.replace("/","");
+            std::cerr<<"name of Dir redone to the new one again="<<qPrintable(name)<<std::endl;
+
+
+            dirModel->setReadOnly(false);
+            QModelIndex index1= dirModel->mkdir(Index,name); // create again new dir to redo command
+            if (!index1.isValid())
+            {
+                std::cerr<<"could not create Dir in undo"<<std::endl;
+                return;
+            }
+
+            QString newdir=List1[0];
+            List1.clear();
+
+            for(int j=0;j<dirModel->rowCount(dirModel->index(newdir));j++)
+            {
+                QModelIndex sourceNewIndex=dirModel->index(j,0,dirModel->index(newdir));
+                const QString path3=dirModel->filePath(sourceNewIndex);
+                List1.append(path3);
+            }
+
+
+
+            List1.push_back(SourceDir);
+            List=List1;
+            Cut();
+
+            QStringList List2;
+            List2.append(TargetDir);
+            List2.append(SourceDir);
+            List=List2;
+            Delete();
+    */
+        }
+        else if (NextObject.get_UndoRedoCommand()=="cut")
+        {
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+            List1.pop_back();
+
+            List1.push_back(TargetDir);
+            List=List1;
+            Cut();
+        }
+        else if (NextObject.get_UndoRedoCommand()=="copy")
+        {
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+ //           List1.pop_back(); //TargetDir already in List1
+ //           List1.append(TargetDir);//TargetDir already in List1
+            List=List1;
+            Copy();
+
+        }
+
+
+    }
+
+
+}
+
+
+void filetool::on_action_undo_triggered()
+{
+     QStringList List1;
+     QString SourceDir;
+     QString TargetDir;
+
+
+    if(undovector.isEmpty()) return;
+
+
+    NextObject=undovector.last();
+    undovector.pop_back();
+
+    if((redovector.isEmpty())||(redovector.last()!=NextObject))
+    {
+             redovector.push_back(NextObject);
+    }
+
+
+    if(undovector.isEmpty())
+    {
+
+        if (NextObject.get_UndoRedoCommand()=="create_dir")
+        {
+            std::cerr<<"Undo Create_dir under construction"<<std::endl;
+
+     /*
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+            List1.push_back(SourceDir);
+            List=List1;
+            Delete();
+    */
+        }
+        else if (NextObject.get_UndoRedoCommand()=="rename")
+        {
+            std::cerr<<"Undo rename under construction"<<std::endl;
+
+    /*
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+
+
+            std::cerr<<"SourceDir="<<qPrintable(SourceDir)<<std::endl;
+            std::cerr<<"TargetDir="<<qPrintable(TargetDir)<<std::endl;
+            std::cerr<<"old name="<<qPrintable(List1[0])<<std::endl;
+
+            QModelIndex Index=dirModel->index(SourceDir);
+
+            QString name=List1[0];
+            name=name.replace(SourceDir,"");
+            name.replace("/","");
+            std::cerr<<"name of Dir undone to the old one="<<qPrintable(name)<<std::endl;
+
+
+            dirModel->setReadOnly(false);
+            QModelIndex index1= dirModel->mkdir(Index,name); // create old dir to resore
+
+            if (!index1.isValid())
+            {
+                std::cerr<<"could not create Dir in undo"<<std::endl;
+                return;
+            }
+
+            List1.clear();
+
+            for(int j=0;j<dirModel->rowCount(dirModel->index(TargetDir));j++)
+            {
+                QModelIndex sourceNewIndex=dirModel->index(j,0,dirModel->index(TargetDir));
+                const QString path3=dirModel->filePath(sourceNewIndex);
+                List1.append(path3);
+            }
+
+
+
+            List1.push_back(SourceDir);
+            List=List1;
+            Cut();
+
+            QStringList List2;
+            List2.append(TargetDir);
+            List2.append(SourceDir);
+            List=List2;
+            Delete();
+    */
+        }
+        else if (NextObject.get_UndoRedoCommand()=="cut")
+        {
+
+            List.clear();
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+            List1.pop_back();
+
+            for(int i=0;i<List1.size();i++)
+            {
+                QString path=List1[i];
+                path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+                List1[i]=path;
+
+            }
+            List1.push_back(SourceDir);
+            List=List1;
+            Cut();
+
+        }
+        else if (NextObject.get_UndoRedoCommand()=="copy")
+        {
+            List.clear();
+
+            List1= NextObject.get_UndoRedoList();
+            SourceDir=NextObject.get_UndoRedoSourceDir();
+            TargetDir=NextObject.get_UndoRedoTargetDir();
+            List1.pop_back();
+            for(int i=0;i<List1.size();i++)
+            {
+                QString path=List1[i];
+                path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+                List1[i]=path;
+            std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
+            }
+            List1.push_back(TargetDir);
+            std::cerr<<"name of TargetDir in undo ="<<qPrintable(TargetDir)<<std::endl;
+            List=List1;
+            Delete();
+        }
+
+        return;
+    }
+    else
+    {
+       PreviousObject=redovector.last();
+
+       if (PreviousObject.get_UndoRedoCommand()=="create_dir")
+       {
+           std::cerr<<"Undo Create_dir under construction"<<std::endl;
+
+     /*
+           List.clear();
+           List1= PreviousObject.get_UndoRedoList();
+           SourceDir=PreviousObject.get_UndoRedoSourceDir();
+           TargetDir=PreviousObject.get_UndoRedoTargetDir();
+           List1.push_back(SourceDir);
+           List=List1;
+           Delete();
+
+
+   */
+       }
+       else if (PreviousObject.get_UndoRedoCommand()=="rename")
+       {
+           std::cerr<<"Undo rename under construction"<<std::endl;
+
+   /*        List.clear();
+           List1= PreviousObject.get_UndoRedoList();
+           SourceDir=PreviousObject.get_UndoRedoSourceDir();
+           TargetDir=PreviousObject.get_UndoRedoTargetDir();
+
+
+           std::cerr<<"SourceDir="<<qPrintable(SourceDir)<<std::endl;
+           std::cerr<<"TargetDir="<<qPrintable(TargetDir)<<std::endl;
+           std::cerr<<"old name="<<qPrintable(List1[0])<<std::endl;
+
+           QModelIndex Index=dirModel->index(SourceDir);
+
+           QString name=List1[0];
+           name=name.replace(SourceDir,"");
+           name.replace("/","");
+           std::cerr<<"name of Dir undone to the old one="<<qPrintable(name)<<std::endl;
+
+
+           dirModel->setReadOnly(false);
+           QModelIndex index1= dirModel->mkdir(Index,name); // create old dir to resore
+
+           if (!index1.isValid())
+           {
+               std::cerr<<"could not create Dir in undo"<<std::endl;
+               return;
+           }
+
+           List1.clear();
+
+           for(int j=0;j<dirModel->rowCount(dirModel->index(TargetDir));j++)
+           {
+               QModelIndex sourceNewIndex=dirModel->index(j,0,dirModel->index(TargetDir));
+               const QString path3=dirModel->filePath(sourceNewIndex);
+               List1.append(path3);
+           }
+
+
+
+           List1.push_back(SourceDir);
+           List=List1;
+           Cut();
+
+           QStringList List2;
+           List2.append(TargetDir);
+           List2.append(SourceDir);
+           List=List2;
+           Delete();
+   */
+       }
+       else if (PreviousObject.get_UndoRedoCommand()=="cut")
+       {
+           List.clear();
+           List1= PreviousObject.get_UndoRedoList();
+           SourceDir=PreviousObject.get_UndoRedoSourceDir();
+           TargetDir=PreviousObject.get_UndoRedoTargetDir();
+           List1.pop_back();
+
+           for(int i=0;i<List1.size();i++)
+           {
+               QString path=List1[i];
+               path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+               std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
+               List1[i]=path;
+
+           }
+
+           List1.push_back(SourceDir);
+           std::cerr<<"name of SourceDir in undo ="<<qPrintable(SourceDir)<<std::endl;
+           List=List1;
+           Cut();
+
+       }
+       else if (PreviousObject.get_UndoRedoCommand()=="copy")
+       {
+           List.clear();
+
+           List1= PreviousObject.get_UndoRedoList();
+           SourceDir=PreviousObject.get_UndoRedoSourceDir();
+           TargetDir=PreviousObject.get_UndoRedoTargetDir();
+           List1.pop_back();
+
+           for(int i=0;i<List1.size();i++)
+           {
+               QString path=List1[i];
+               path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+               std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
+               List1[i]=path;
+
+           }
+
+           List1.push_back(TargetDir);
+           std::cerr<<"name of files in undo ="<<qPrintable(TargetDir)<<std::endl;
+           List=List1;
+           Delete();
+       }
+    }
+
+
+
+
+}
+
+
+void filetool::Delete()
+{
+QString str="delete";
+PasteDialog *DeleteDialog;
+DeleteDialog=new PasteDialog(this);
+DeleteDialog->setAction(str,List);
+busy=true;
+
+
+DeleteDialog->show();
+DeleteDialog->raise();
+DeleteDialog->activateWindow();
+connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
+connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
+}
+
+void filetool::Copy()
+{
+busy=true;
+QString str1="copy";
+PasteDialog *CopyDialog;
+CopyDialog=new PasteDialog(this);
+CopyDialog->setAction(str1,List);
+
+ CopyDialog->show();
+ CopyDialog->raise();
+CopyDialog->activateWindow();
+connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
+connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
+}
+void filetool::Cut()
+{
+busy=true;
+QString str2="cut";
+PasteDialog *CutDialog;
+CutDialog=new PasteDialog(this);
+CutDialog->setAction(str2,List);
+
+
+CutDialog->show();
+CutDialog->raise();
+CutDialog->activateWindow();
+connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
+connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
+
+//    CutDialog->exec();
 }

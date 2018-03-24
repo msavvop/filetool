@@ -10,6 +10,66 @@
 #include <QUrl>
 #include <QtWidgets>
 #include "pastedialog.h"
+#include <QString>
+#include<iostream>
+
+ class UndoRedo {
+// This class is made for objects that keep information nessesary to undo and redo commands
+
+
+
+private:
+    QString UndoRedoCommand;
+    QString UndoRedoSourceDir;
+    QString UndoRedoTargetDir;
+    QStringList UndoRedoList;
+
+
+public:
+    UndoRedo()
+    {
+        UndoRedoCommand="";
+        UndoRedoSourceDir="";
+        UndoRedoTargetDir="";
+        UndoRedoList.push_back("");
+     }
+
+    QString get_UndoRedoCommand(){return UndoRedoCommand;}
+    QString get_UndoRedoSourceDir(){return UndoRedoSourceDir;}
+    QString get_UndoRedoTargetDir(){return UndoRedoTargetDir;}
+    QStringList get_UndoRedoList(){return UndoRedoList;}
+
+    void set_UndoRedoCommand(QString command1){UndoRedoCommand=command1;}
+    void set_UndoRedoSourceDir(QString Dir){UndoRedoSourceDir=Dir;}
+    void set_UndoRedoTargetDir(QString Dir){UndoRedoTargetDir=Dir;}
+    void set_UndoRedoList(QStringList list)
+    {
+        UndoRedoList=list;
+    }
+    bool operator ==(UndoRedo& object1) const
+    {
+
+        if (UndoRedoCommand!=object1.get_UndoRedoCommand()) return false;
+          if  (UndoRedoSourceDir!=object1.get_UndoRedoSourceDir()) return false;
+           if (UndoRedoTargetDir!=object1.get_UndoRedoTargetDir())return false;
+           if ( UndoRedoList.size()!=object1.get_UndoRedoList().size()) return false;
+
+            for (int i; i<UndoRedoList.size();i++)
+            {
+                if (UndoRedoList[i]!=object1.get_UndoRedoList()[i]) return false;
+            }
+            return true;
+
+    }
+    bool operator !=(UndoRedo& object1) const
+    {
+        return !(*this==object1);
+    }
+
+
+};
+
+
 
 class QModelIndex;
 namespace Ui {
@@ -23,11 +83,18 @@ class filetool : public QMainWindow
 public:
     explicit filetool(QWidget *parent = 0);
     ~filetool();
- QStringList selectedFiles();
- QModelIndex parentDir();
-Qt::ItemFlags flags(const QModelIndex &index) const;
+
+    QStringList selectedFiles();
+    QModelIndex parentDir();
+    void Delete();
+    void Copy();
+    void Cut();
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+
+
 signals:
 int combo_change(int);
+
 
 private slots:
  void on_listView_activated(const QModelIndex &index);
@@ -94,10 +161,15 @@ void setCurrentComboIndex(int);
 
  void on_actionAbout_triggered();
 
+ void on_actionRe_do_triggered();
+
+ void on_action_undo_triggered();
+
 protected:
 
 void writeSettings();
 void ReadSettings();
+
 
 
 private:
@@ -106,18 +178,29 @@ private:
     QItemSelectionModel *selModel;
     QFileSystemModel *dirModel;
     QFileSystemModel *treeViewDirModel;
-    QDirModel *dirModel2;
+    QDirModel *dirModel2; // I used QDirModel which is deprived because some commands and especially
+    //                       index(j,0,dirModel2->index(path)) were not not working properly
+    //                       in QFileSystemModel when I was writing the code
 
     QModelIndexList indexHistoryList;
     QModelIndexList indexForwardList;
     QModelIndex  previousIndex;
     QModelIndex parentDirIndex;
     QModelIndex nextIndex;
+
     QString newPath;
     QModelIndexList pasteList;
      QStringList List;
     bool copyIndicator;
     volatile bool busy;
+
+    UndoRedo PreviousObject;
+    UndoRedo NextObject;
+    UndoRedo command;
+
+
+    QVector<UndoRedo> undovector;
+    QVector<UndoRedo> redovector;
 };
 
 #endif // FILETOOL_H

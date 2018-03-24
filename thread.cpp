@@ -15,6 +15,7 @@ void Thread::setthread(QString ActionString, QStringList list)
 {
     ActionStr=ActionString;
     List=list;
+//    std::cerr<<"AT SETTHREAD selected item"<<qPrintable(List.at(0))<<endl;
 }
 
 
@@ -60,19 +61,20 @@ int Thread::showSize()
 
     for(int i=0;i<(List.size())-1;i++)
     {
-
-
          QModelIndex indexTemp=dirModel->index(List[i]);
-
+         if (!indexTemp.isValid()) continue;
+        std::cerr<<"AT Thread::showSize() selected item "<<qPrintable(List.at(0))<<std::endl;
         copyList->push_back(  indexTemp );
 
-
-
     }
+
     std::cerr <<"In Showsize CopyList size=\t"<<copyList->size()<<std::endl;
     std::cerr <<"In Showsize CopyList[0]=\t"<<qPrintable( List[0])<<std::endl;
 
-    ok=getSize(Index,copyList);
+     if (copyList->isEmpty()) return false;
+
+     ok=getSize(Index,copyList);
+
      std::cerr <<"In ShowSize Size= \t"<<Size<<std::endl;
 
 
@@ -97,7 +99,9 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
     if(ActionStr=="delete")
     {
 
+        index=dirModel->index(List[0]);
 
+        if (!index.isValid())      return false; // to avoid something like rm -rf *
 
 
 
@@ -166,13 +170,11 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
         dirModel->setReadOnly(false);
 
 
-
-
-
-
         StrIndex=List.last();
 
         Index=dirModel->index(StrIndex);
+
+
 
                for(int i=0;i<(List.size())-1;i++)
                {
@@ -181,6 +183,7 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
 
 
                     QModelIndex indexTemp=dirModel->index(List[i]);
+                     if (!indexTemp.isValid())      continue;// To avoid cp -rf *
 
                    copyList->push_back(  indexTemp );
                    std::cerr <<"Copy List size=\t"<<copyList->size()<<std::endl;
@@ -189,7 +192,11 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
 
                }
 
-
+               if (copyList->isEmpty())
+               {
+                   std::cerr<< "invalid copyList in copy"<<std::endl;
+                   return false;   // To avoid cp -rf *
+               }
 
 
                ok=copy(Index,copyList);
@@ -221,19 +228,17 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
 
             return true;
         }
+
+
+
         for(int i=0;i<(List.size())-1;i++)
         {
-
-
-
-
-
-
 
 
  //            std::cerr <<"list\n"<<qPrintable(dirModel->filePath(List[i]))<<std::endl;
             QModelIndex indexTemp=dirModel->index(List[i]);
 
+            if (!indexTemp.isValid())      continue;// to avoid mv -rf *
 
            copyList->push_back(  indexTemp );
 
@@ -241,6 +246,11 @@ bool Thread::fileaction(QString ActionStr, QStringList List)
            std::cerr <<"Cut List size=\t"<<copyList->size()<<std::endl;
            std::cerr <<"Cut List[0]=\t"<<qPrintable( List[0])<<std::endl;
 
+        }
+        if (copyList->isEmpty())
+        {
+            std::cerr<< "invalid copyList in move"<<std::endl;
+            return  false;         // to avoid mv -rf *
         }
 
 
@@ -284,11 +294,6 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
 
     dirModel->setReadOnly(false);
-
-
-
-
-
 
 
     bool ok=false;

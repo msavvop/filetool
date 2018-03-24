@@ -467,6 +467,9 @@
    <property name="text">
     <string>recycle</string>
    </property>
+   <property name="toolTip">
+    <string>recycle is not implemented yet</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
