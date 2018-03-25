@@ -1,0 +1,18 @@
+FILETOOL
+
+Filetool is a filesystem explorer tool. It copies, deletes,moves, etc.
+This program is created with Qt. In order to compile it and 
+run it you need Qt. You can find Qt in https://www.qt.io/download 
+
+I have run many tests and the program is stable and reliable. Nevertheless,
+I would advice caution because  it is  a program that changes the filesystem,
+and in some future commit it might have some bug. So, it is best if you first run it
+in a Virtual Machine until you are certain that it works ok.
+
+It can be compiled with Qt in Windows or Linux. It works ok in both operating systems.
+
+At this commit I still need to work on recycle, and perfect undo and redo. Undo and redo work ok, 
+but the undo rename and undo mkdir and redo rename and redo mkdir have to be implemented.
+
+The command delete is permanent and cannot be undone so be carefull because what you delete is 
+deleted permanently and cannot be undone.

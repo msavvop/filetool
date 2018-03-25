@@ -507,7 +507,7 @@ void filetool::on_action_rename_triggered()
 {
     parentDirIndex= indexHistoryList.last();
     QString ParentDir_name=dirModel->filePath(parentDirIndex);
-    std::cerr<<"AT RENAME ParentDir_name="<<qPrintable(ParentDir_name)<<std::endl;
+    std::cerr<<"AT RENAME ParentDir_name=   "<<qPrintable(ParentDir_name)<<std::endl;
 
     if (selModel->selectedIndexes().size()!=1) return;
 
@@ -519,9 +519,10 @@ void filetool::on_action_rename_triggered()
     QString selectedItem=selected.at(0);
 
 
-    std::cerr<<"AT RENAME selected item"<<qPrintable(selectedItem)<<std::endl;
+    std::cerr<<"AT RENAME selected item=    "<<qPrintable(selectedItem)<<std::endl;
 
     QModelIndex index=dirModel->index(selectedItem);
+    int row=dirModel->index(selectedItem).row();
 
 
 
@@ -531,13 +532,16 @@ void filetool::on_action_rename_triggered()
 
     ui->tableView->edit(index);
 
+
+    QModelIndex index1=dirModel->index(row,0,parentDirIndex);
+
     if(!index.isValid()) return;
     QString newname;
 
-    newname= dirModel->filePath(index);
+    newname= dirModel->filePath(index1);
 
 
-    std::cerr<<"AT RENAME New_katalog_name="<<qPrintable(newname)<<std::endl;
+    std::cerr<<"AT RENAME New_katalog_name newname =    "<<qPrintable(newname)<<std::endl;
 
      List.clear();
 
