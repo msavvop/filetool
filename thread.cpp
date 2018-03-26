@@ -536,6 +536,12 @@ bool Thread::getSize(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
         }
 
    }
+    else
+   {
+            std::cerr<< "invalid copyList in copy"<<std::endl;
+            return false;   // To avoid cp -rf *
+    }
+
     std::cerr <<"In getSize Size= \t"<<Size<<std::endl;
     return true;
 }

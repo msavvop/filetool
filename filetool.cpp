@@ -1096,7 +1096,8 @@ void filetool::on_action_undo_triggered()
             for(int i=0;i<List1.size();i++)
             {
                 QString path=List1[i];
-                path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+                path=path.replace(SourceDir,TargetDir+"/");
+                path=path.replace("//","/");//Needs a / in order to work correctly
                 List1[i]=path;
 
             }
@@ -1116,7 +1117,8 @@ void filetool::on_action_undo_triggered()
             for(int i=0;i<List1.size();i++)
             {
                 QString path=List1[i];
-                path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+                path=path.replace(SourceDir,TargetDir+"/");
+                path=path.replace("//","/");       ;//Needs a / in order to work correctly
                 List1[i]=path;
             std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
             }
@@ -1212,7 +1214,8 @@ void filetool::on_action_undo_triggered()
            for(int i=0;i<List1.size();i++)
            {
                QString path=List1[i];
-               path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+               path=path.replace(SourceDir,TargetDir+"/");
+               path=path.replace("//","/");//Needs a / in order to work correctly
                std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
                List1[i]=path;
 
@@ -1236,7 +1239,8 @@ void filetool::on_action_undo_triggered()
            for(int i=0;i<List1.size();i++)
            {
                QString path=List1[i];
-               path=path.replace(SourceDir,TargetDir+"/");//Needs a / in order to work correctly
+               path=path.replace(SourceDir,TargetDir+"/");
+               path=path.replace("//","/");//Needs a / in order to work correctly
                std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
                List1[i]=path;
 
