@@ -865,9 +865,8 @@ void filetool::on_actionRe_do_triggered()
             List1= PreviousObject.get_UndoRedoList();
             SourceDir=PreviousObject.get_UndoRedoSourceDir();
             TargetDir=PreviousObject.get_UndoRedoTargetDir();
-            List1.pop_back();
-
-            List1.push_back(TargetDir);
+ //            List1.pop_back(); //TargetDir already in List1
+ //            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Cut();
         }
@@ -877,8 +876,8 @@ void filetool::on_actionRe_do_triggered()
             List1= PreviousObject.get_UndoRedoList();
             SourceDir=PreviousObject.get_UndoRedoSourceDir();
             TargetDir=PreviousObject.get_UndoRedoTargetDir();
- //           List1.pop_back(); //TargetDir already in List1
- //           List1.append(TargetDir);//TargetDir already in List1
+//            List1.pop_back(); //TargetDir already in List1
+//            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Copy();
 
@@ -968,9 +967,8 @@ void filetool::on_actionRe_do_triggered()
             List1= NextObject.get_UndoRedoList();
             SourceDir=NextObject.get_UndoRedoSourceDir();
             TargetDir=NextObject.get_UndoRedoTargetDir();
-            List1.pop_back();
-
-            List1.push_back(TargetDir);
+//            List1.pop_back(); //TargetDir already in List1
+//            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Cut();
         }
@@ -980,9 +978,9 @@ void filetool::on_actionRe_do_triggered()
             List1= NextObject.get_UndoRedoList();
             SourceDir=NextObject.get_UndoRedoSourceDir();
             TargetDir=NextObject.get_UndoRedoTargetDir();
- //           List1.pop_back(); //TargetDir already in List1
- //           List1.append(TargetDir);//TargetDir already in List1
-            List=List1;
+//            List1.pop_back(); //TargetDir already in List1
+//            List1.append(TargetDir);//TargetDir already in List1
+           List=List1;
             Copy();
 
         }
