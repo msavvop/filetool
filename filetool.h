@@ -12,6 +12,9 @@
 #include "pastedialog.h"
 #include <QString>
 #include<iostream>
+#include <utility>
+
+using std::reference_wrapper;
 
  class UndoRedo {
 // This class is made for objects that keep information nessesary to undo and redo commands
@@ -164,6 +167,10 @@ void setCurrentComboIndex(int);
  void on_actionRe_do_triggered();
 
  void on_action_undo_triggered();
+
+ void createContextMenu();
+
+ void on_actionrecycle_triggered();
 
 protected:
 

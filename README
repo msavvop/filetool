@@ -19,8 +19,8 @@ certain that it works ok.
 It can be compiled with Qt in Windows or Linux. It works ok in both operating systems.
 
 At this commit I still need to work on recycle, and perfect undo and redo. Undo and redo work ok, 
-but the undo rename and undo mkdir and redo rename and redo mkdir have to be implemented. I also 
-have to produce code for right mouse button actions.
+but the undo rename and undo mkdir and redo rename and redo mkdir have to be implemented. Rename works 
+only in table view for some reason.
 
 The command delete is permanent and cannot be undone so be careful because what you delete is 
 deleted permanently and cannot be undone.
@@ -29,5 +29,6 @@ To list a few of the problems: Overwrite control has not been implemented, and t
 Thus, if you copy or move a file over an other file with the same name, you will lose data. It is not 
 diffecult to implement it and finally I will, but I am doing this in my free time to learn Qt, 
 so there is no hurry. 
-I corrected the problem of multiple paste that would result in data loss 
-(if you paste something a second time or more times you will lose data. )
+I corrected the problem of multiple "paste" that would result in data loss 
+(if you "paste" something a second time or more times you would lose data, but now this is fixed )
+In this commit I implemented the context menu (the menu that appears if you click the right mouse button)

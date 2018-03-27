@@ -71,6 +71,7 @@ filetool::filetool(QWidget *parent) :
     on_listView_clicked(cwdIndex);
     on_listView_activated(cwdIndex);
     on_actionGo_home_triggered();
+    createContextMenu();
     ReadSettings();
 
 
@@ -498,6 +499,7 @@ void filetool::on_actionDirectory_triggered()
 //    std::cout<<qPrintable(Old_katalog_name)<<endl;
 
     undovector.push_back(command);
+    List.clear();
 
 }
 
@@ -505,6 +507,7 @@ void filetool::on_actionDirectory_triggered()
 
 void filetool::on_action_rename_triggered()
 {
+
     parentDirIndex= indexHistoryList.last();
     QString ParentDir_name=dirModel->filePath(parentDirIndex);
     std::cerr<<"AT RENAME ParentDir_name=   "<<qPrintable(ParentDir_name)<<std::endl;
@@ -522,7 +525,8 @@ void filetool::on_action_rename_triggered()
     std::cerr<<"AT RENAME selected item=    "<<qPrintable(selectedItem)<<std::endl;
 
     QModelIndex index=dirModel->index(selectedItem);
-    int row=dirModel->index(selectedItem).row();
+     reference_wrapper <QModelIndex> ref(index);
+//    int row=dirModel->index(selectedItem).row();
 
 
 
@@ -530,16 +534,31 @@ void filetool::on_action_rename_triggered()
 
     dirModel->setReadOnly(false);
 
-    ui->tableView->edit(index);
+    if(ui->tableView->isActiveWindow())
+    {
+    ui->tableView->edit(ref);
+    }
+    else if(ui->listView->isActiveWindow())
+    {
+        ui->listView->edit(ref);
+    }
+    else if (ui->iconView->isActiveWindow())
+    {
+        ui->iconView->edit(ref);
+    }
+    else if (ui->treeView->isActiveWindow())
+    {
+        ui->treeView->edit(ref);
+    }
 
 
-    QModelIndex index1=dirModel->index(row,0,parentDirIndex);
+//    QModelIndex index1=dirModel->index(row,0,parentDirIndex);
 
     if(!index.isValid()) return;
     QString newname;
 
-    newname= dirModel->filePath(index1);
-
+    newname= dirModel->filePath(ref);
+//  newname= dirModel->filePath(index1);
 
     std::cerr<<"AT RENAME New_katalog_name newname =    "<<qPrintable(newname)<<std::endl;
 
@@ -557,6 +576,7 @@ void filetool::on_action_rename_triggered()
 //    std::cout<<"AT RENAME new katalog name="<<qPrintable(newname)<<std::endl;
 
       undovector.push_back(command);
+      List.clear();
 }
 
 
@@ -648,6 +668,7 @@ void filetool::on_action_delete_triggered()
         Delete();
 
     }
+    List.clear();
 
 
 }
@@ -1335,4 +1356,56 @@ connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
 
 //    CutDialog->exec();
+}
+void filetool::createContextMenu()
+{
+ui->listView->addAction(ui->actionC_opy);
+ui->listView->addAction(ui->action_cut);
+ui->listView->addAction(ui->action_paste);
+ui->listView->addAction(ui->action_rename);
+ui->listView->addAction(ui->actionDirectory);
+ui->listView->addAction(ui->actionrecycle);
+ui->listView->addAction(ui->action_delete);
+ui->listView->addAction(ui->action_undo);
+ui->listView->addAction(ui->actionRe_do);
+
+ui->treeView->addAction(ui->actionC_opy);
+ui->treeView->addAction(ui->action_cut);
+ui->treeView->addAction(ui->action_paste);
+ui->treeView->addAction(ui->action_rename);
+ui->treeView->addAction(ui->actionDirectory);
+ui->treeView->addAction(ui->actionrecycle);
+ui->treeView->addAction(ui->action_delete);
+ui->treeView->addAction(ui->action_undo);
+ui->treeView->addAction(ui->actionRe_do);
+
+ui->tableView->addAction(ui->actionC_opy);
+ui->tableView->addAction(ui->action_cut);
+ui->tableView->addAction(ui->action_paste);
+ui->tableView->addAction(ui->action_rename);
+ui->tableView->addAction(ui->actionDirectory);
+ui->tableView->addAction(ui->actionrecycle);
+ui->tableView->addAction(ui->action_delete);
+ui->tableView->addAction(ui->action_undo);
+ui->tableView->addAction(ui->actionRe_do);
+
+ui->iconView->addAction(ui->actionC_opy);
+ui->iconView->addAction(ui->action_cut);
+ui->iconView->addAction(ui->action_paste);
+ui->iconView->addAction(ui->action_rename);
+ui->iconView->addAction(ui->actionDirectory);
+ui->iconView->addAction(ui->actionrecycle);
+ui->iconView->addAction(ui->action_delete);
+ui->iconView->addAction(ui->action_undo);
+ui->iconView->addAction(ui->actionRe_do);
+
+ui->listView->setContextMenuPolicy(Qt::ActionsContextMenu);
+ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
+ui->tableView->setContextMenuPolicy(Qt::ActionsContextMenu);
+ui->iconView->setContextMenuPolicy(Qt::ActionsContextMenu);
+}
+
+void filetool::on_actionrecycle_triggered()
+{
+    std::cerr<<"not implemented yet"<<std::endl;
 }
