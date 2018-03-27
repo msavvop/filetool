@@ -729,7 +729,7 @@ void filetool::on_action_paste_triggered()
 {
     QModelIndex Index;
 
-
+    if(List.isEmpty())  return;
     Index=indexHistoryList.last();
     QString newname=dirModel->filePath(Index);
     List.append(newname);
@@ -755,6 +755,7 @@ void filetool::on_action_paste_triggered()
     }
 
     undovector.push_back(command);
+    List.clear();
 }
 
 
@@ -803,6 +804,8 @@ void filetool::on_actionRe_do_triggered()
             QString name=TargetDir.replace(SourceDir,"");
             name=name.replace("/","");
             QModelIndex index= dirModel->mkdir( parentDirIndex,name);
+            List.clear();
+
    */
         }
         else if (PreviousObject.get_UndoRedoCommand()=="rename")
@@ -857,6 +860,8 @@ void filetool::on_actionRe_do_triggered()
             List2.append(SourceDir);
             List=List2;
             Delete();
+            List.clear();
+
     */
         }
         else if (PreviousObject.get_UndoRedoCommand()=="cut")
@@ -869,6 +874,8 @@ void filetool::on_actionRe_do_triggered()
  //            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Cut();
+            List.clear();
+
         }
         else if (PreviousObject.get_UndoRedoCommand()=="copy")
         {
@@ -880,6 +887,8 @@ void filetool::on_actionRe_do_triggered()
 //            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Copy();
+            List.clear();
+
 
         }
 
@@ -905,6 +914,8 @@ void filetool::on_actionRe_do_triggered()
             QString name=TargetDir.replace(SourceDir,"");
             name=name.replace("/","");
             QModelIndex index= dirModel->mkdir( parentDirIndex,name);
+            List.clear();
+
             */
         }
         else if (NextObject.get_UndoRedoCommand()=="rename")
@@ -959,6 +970,8 @@ void filetool::on_actionRe_do_triggered()
             List2.append(SourceDir);
             List=List2;
             Delete();
+            List.clear();
+
     */
         }
         else if (NextObject.get_UndoRedoCommand()=="cut")
@@ -971,6 +984,8 @@ void filetool::on_actionRe_do_triggered()
 //            List1.append(TargetDir);//TargetDir already in List1
             List=List1;
             Cut();
+            List.clear();
+
         }
         else if (NextObject.get_UndoRedoCommand()=="copy")
         {
@@ -982,12 +997,14 @@ void filetool::on_actionRe_do_triggered()
 //            List1.append(TargetDir);//TargetDir already in List1
            List=List1;
             Copy();
+            List.clear();
+
 
         }
 
 
     }
-
+    List.clear();
 
 }
 
@@ -1026,6 +1043,8 @@ void filetool::on_action_undo_triggered()
             List1.push_back(SourceDir);
             List=List1;
             Delete();
+            List.clear();
+
     */
         }
         else if (NextObject.get_UndoRedoCommand()=="rename")
@@ -1080,6 +1099,8 @@ void filetool::on_action_undo_triggered()
             List2.append(SourceDir);
             List=List2;
             Delete();
+            List.clear();
+
     */
         }
         else if (NextObject.get_UndoRedoCommand()=="cut")
@@ -1102,6 +1123,8 @@ void filetool::on_action_undo_triggered()
             List1.push_back(SourceDir);
             List=List1;
             Cut();
+            List.clear();
+
 
         }
         else if (NextObject.get_UndoRedoCommand()=="copy")
@@ -1124,6 +1147,8 @@ void filetool::on_action_undo_triggered()
             std::cerr<<"name of TargetDir in undo ="<<qPrintable(TargetDir)<<std::endl;
             List=List1;
             Delete();
+            List.clear();
+
         }
 
         return;
@@ -1144,6 +1169,8 @@ void filetool::on_action_undo_triggered()
            List1.push_back(SourceDir);
            List=List1;
            Delete();
+           List.clear();
+
 
 
    */
@@ -1199,6 +1226,8 @@ void filetool::on_action_undo_triggered()
            List2.append(SourceDir);
            List=List2;
            Delete();
+           List.clear();
+
    */
        }
        else if (PreviousObject.get_UndoRedoCommand()=="cut")
@@ -1223,6 +1252,8 @@ void filetool::on_action_undo_triggered()
            std::cerr<<"name of SourceDir in undo ="<<qPrintable(SourceDir)<<std::endl;
            List=List1;
            Cut();
+           List.clear();
+
 
        }
        else if (PreviousObject.get_UndoRedoCommand()=="copy")
@@ -1248,12 +1279,13 @@ void filetool::on_action_undo_triggered()
            std::cerr<<"name of files in undo ="<<qPrintable(TargetDir)<<std::endl;
            List=List1;
            Delete();
+           List.clear();
+
        }
     }
 
 
-
-
+    List.clear();
 }
 
 

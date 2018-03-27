@@ -28,5 +28,6 @@ deleted permanently and cannot be undone.
 To list a few of the problems: Overwrite control has not been implemented, and this affetcs undo and redo.
 Thus, if you copy or move a file over an other file with the same name, you will lose data. It is not 
 diffecult to implement it and finally I will, but I am doing this in my free time to learn Qt, 
-so there is no hurry. Also if you paste something a second time or more times you will lose data. 
-This one is easier to correct and I will correct it soon.
+so there is no hurry. 
+I corrected the problem of multiple paste that would result in data loss 
+(if you paste something a second time or more times you will lose data. )
