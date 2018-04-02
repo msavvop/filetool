@@ -25,11 +25,16 @@ private:
     Thread *pathread;
     QString actionString;
    QStringList list;
+   QString Answer;
 
 
   public slots:
 
     void on_Cancel_clicked();
+
+void FileExists(QString Source,QString Target);
+void setAnswer(QString);
+QString getAnswer();
 
     private slots:
 
@@ -38,6 +43,8 @@ private:
 signals:
 
 void dialogComplete(bool);
+void file_Exists(QString Source,QString Target);
+void sendAnswer(QString);
 };
 
 #endif // PASTEDIALOG_H

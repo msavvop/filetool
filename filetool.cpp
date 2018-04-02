@@ -11,6 +11,7 @@ filetool::filetool(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::filetool)
 {
+
     busy=false;
     ui->setupUi(this);
 
@@ -19,7 +20,10 @@ filetool::filetool(QWidget *parent) :
     treeViewDirModel=new QFileSystemModel;
     selModel=new QItemSelectionModel(dirModel);
     dirModel2=new QDirModel;
+    pDialog=new OverwriteDialog();
+
     connect(this, SIGNAL(combo_change(int)),this,SLOT(setCurrentComboIndex(int)));
+
 
 //    dirModel->setSorting(QDir::DirsFirst | QDir::IgnoreCase | QDir::Name);
 
@@ -784,7 +788,7 @@ void filetool::on_actionAbout_triggered()
 {
     QMessageBox *box;
     box->information(this,tr("Filetool"),tr("This Program is Created by Mihail Savvopoulos using Qt. "
-                                            "The icons were taken from Linux. I think it was Ubuntu or Mint."),QMessageBox::Ok);
+                                            "The icons were  taken from Linux. (Default KDE icons from Mint.)"),QMessageBox::Ok);
 }
 
 
@@ -1324,6 +1328,7 @@ DeleteDialog->raise();
 DeleteDialog->activateWindow();
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
+
 }
 
 void filetool::Copy()
@@ -1339,7 +1344,13 @@ CopyDialog->setAction(str1,List);
 CopyDialog->activateWindow();
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
+connect(CopyDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
+//connect(this,SIGNAL(answerSet(QString)),CopyDialog,SLOT(setAnswer(QString)));
+std::cerr<<"Answer in Copy Dialog= "<<qPrintable(getAnswer())<<std::endl;
+
+emit CopyDialog->sendAnswer(getAnswer());
 }
+
 void filetool::Cut()
 {
 busy=true;
@@ -1354,6 +1365,10 @@ CutDialog->raise();
 CutDialog->activateWindow();
 connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
+connect(CutDialog,SIGNAL(file_Exists(QString, QString)),this,SLOT(fileDialog(QString,QString)));
+emit CutDialog->sendAnswer(getAnswer());
+//connect(this,SIGNAL(answerSet(QString)),CutDialog,SLOT(setAnswer(QString)));
+std::cerr<<"Answer in CutDialog= "<<qPrintable(getAnswer())<<std::endl;
 
 //    CutDialog->exec();
 }
@@ -1408,4 +1423,35 @@ ui->iconView->setContextMenuPolicy(Qt::ActionsContextMenu);
 void filetool::on_actionrecycle_triggered()
 {
     std::cerr<<"not implemented yet"<<std::endl;
+}
+void filetool::fileDialog(QString Source,QString Target)
+{
+
+
+
+//    pDialog->show();
+//    pDialog->raise();
+//    pDialog->activateWindow();
+    pDialog->setFiles(Source,Target);
+    pDialog->exec();
+    connect(pDialog,SIGNAL(sendAnswer(QString)),this,SLOT(setAnswer(QString)));
+
+
+
+
+
+
+}
+void filetool::setAnswer(QString answer)
+{
+    Answer=answer;
+
+    std::cerr<<"in setAnswer Answer= "<<qPrintable(Answer)<<std::endl;
+
+
+}
+
+QString filetool::getAnswer()
+{
+    return Answer;
 }

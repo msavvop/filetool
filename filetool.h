@@ -13,6 +13,7 @@
 #include <QString>
 #include<iostream>
 #include <utility>
+#include<overwritedialog.h>
 
 using std::reference_wrapper;
 
@@ -95,9 +96,16 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 
+
 signals:
 int combo_change(int);
 
+bool answerSet(QString);
+public slots:
+
+void fileDialog(QString,QString);
+void setAnswer(QString);
+QString getAnswer();
 
 private slots:
  void on_listView_activated(const QModelIndex &index);
@@ -181,13 +189,14 @@ void ReadSettings();
 
 private:
     Ui::filetool *ui;
-
+    QString Answer;
     QItemSelectionModel *selModel;
     QFileSystemModel *dirModel;
     QFileSystemModel *treeViewDirModel;
     QDirModel *dirModel2; // I used QDirModel which is deprived because some commands and especially
     //                       index(j,0,dirModel2->index(path)) were not not working properly
     //                       in QFileSystemModel when I was writing the code
+
 
     QModelIndexList indexHistoryList;
     QModelIndexList indexForwardList;
@@ -205,7 +214,8 @@ private:
     UndoRedo NextObject;
     UndoRedo command;
 
-
+    OverwriteDialog *pDialog;
+    PasteDialog *pasteDialog;
     QVector<UndoRedo> undovector;
     QVector<UndoRedo> redovector;
 };

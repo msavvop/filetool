@@ -8,6 +8,9 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QWaitCondition>
+#include <QStyleOption>
+
+
 
 class QModelIndex;
 class Thread : public QThread
@@ -23,11 +26,17 @@ public:
     bool copy(QModelIndex Index, QModelIndexList *copyList);
     bool getSize(QModelIndex Index, QModelIndexList *copyList);
 
+
+
     int showSize();
     protected:
     void run();
 
     private:
+
+
+
+    QString Answer;
     int count;
     QString ActionStr;
     volatile bool stopped;
@@ -42,9 +51,14 @@ public:
     signals:
    void valueChanged(int);
    void dialogComplete(bool);
+   void fileexists(QString, QString);
+    void send_Answer(QString);
 
 public slots:
     void stop();
+
+    void set_Answer(QString);
+    QString getAnswer();
 };
 
 #endif // THREAD_H

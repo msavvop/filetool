@@ -11,6 +11,8 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
     pathread= new Thread;
     connect(pathread, SIGNAL(valueChanged(int)), ui->progressBar, SLOT(setValue(int )));
     connect(pathread, SIGNAL(dialogComplete(bool)), this, SIGNAL(dialogComplete(bool)));
+    connect(pathread,SIGNAL(fileexists( QString,QString)),this,SLOT(FileExists(QString,QString)));
+
 
 
 }
@@ -39,6 +41,11 @@ void PasteDialog::setAction(QString str, QStringList List)
      ui->progressBar->setRange(0,Size );
     pathread->start();
 
+    connect(this,SIGNAL(sendAnswer(QString)),this,SLOT(setAnswer(QString)));
+    connect(this,SIGNAL(sendAnswer(QString)),pathread,SIGNAL(send_Answer(QString)));
+
+   emit pathread->send_Answer(getAnswer());
+   std::cerr<<"In Pastedialog setAnswer Answer= "<<qPrintable(Answer)<<std::endl;
 
 }
 
@@ -65,9 +72,22 @@ void PasteDialog::closeEvent(QCloseEvent *event)
 
 
 
+
 void PasteDialog::on_Cancel_clicked()
 {
     pathread->stop();
 
 }
+void PasteDialog::FileExists(QString Source,QString Target)
+{
+    emit file_Exists(Source,Target);
+}
+void PasteDialog::setAnswer(QString answer)
+{
+    Answer=answer;
 
+}
+QString PasteDialog::getAnswer()
+{
+    return Answer;
+}

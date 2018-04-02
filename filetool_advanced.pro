@@ -15,14 +15,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         filetool.cpp \
     pastedialog.cpp \
-    thread.cpp
+    thread.cpp \
+    overwritedialog.cpp
 
 HEADERS  += filetool.h \
     pastedialog.h \
-    thread.h
+    thread.h \
+    overwritedialog.h
 
 FORMS    += filetool.ui \
-    pastedialog.ui
+    pastedialog.ui \
+    overwritedialog.ui
 
 RESOURCES += \
     filetool.qrc
