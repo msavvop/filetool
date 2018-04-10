@@ -1,8 +1,12 @@
 #ifndef OVERWRITEDIALOG_H
 #define OVERWRITEDIALOG_H
 
+
 #include <QDialog>
 #include <QCloseEvent>
+#include <thread.h>
+
+
 
 namespace Ui {
 class OverwriteDialog;
@@ -18,11 +22,13 @@ public:
 
     void setFiles(QString,QString);
 
+
 private:
     Ui::OverwriteDialog *ui;
     QString SourceFile;
     QString TargetFile;
-    QCloseEvent *event;
+     QCloseEvent *event;
+
 signals:
 
   void sendAnswer(QString);
@@ -30,7 +36,9 @@ signals:
 
 
 
+public slots:
 
+  void closedialog(bool);
 
 
 private slots:

@@ -1,10 +1,15 @@
 #ifndef PASTEDIALOG_H
 #define PASTEDIALOG_H
+
+
 #include "thread.h"
 #include <QDialog>
 #include<QEvent>
 #include <QCloseEvent>
 #include <QFileSystemModel>
+
+
+
 class QCloseEvent;
 class QModelIndex;
 namespace Ui {
@@ -45,6 +50,7 @@ signals:
 void dialogComplete(bool);
 void file_Exists(QString Source,QString Target);
 void sendAnswer(QString);
+void CloseOverWriteDialog(bool);
 };
 
 #endif // PASTEDIALOG_H

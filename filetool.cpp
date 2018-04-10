@@ -6,6 +6,9 @@
 #include <QMessageBox>
 #include <string>
 
+QMutex global_mutex;
+QWaitCondition global_var_not_set;
+QWaitCondition global_var_set;
 
 filetool::filetool(QWidget *parent) :
     QMainWindow(parent),
@@ -1344,11 +1347,10 @@ CopyDialog->setAction(str1,List);
 CopyDialog->activateWindow();
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
+pasteDialog=CopyDialog;
 connect(CopyDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
-//connect(this,SIGNAL(answerSet(QString)),CopyDialog,SLOT(setAnswer(QString)));
-std::cerr<<"Answer in Copy Dialog= "<<qPrintable(getAnswer())<<std::endl;
 
-emit CopyDialog->sendAnswer(getAnswer());
+
 }
 
 void filetool::Cut()
@@ -1365,10 +1367,10 @@ CutDialog->raise();
 CutDialog->activateWindow();
 connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
+
+pasteDialog=CutDialog;
 connect(CutDialog,SIGNAL(file_Exists(QString, QString)),this,SLOT(fileDialog(QString,QString)));
-emit CutDialog->sendAnswer(getAnswer());
-//connect(this,SIGNAL(answerSet(QString)),CutDialog,SLOT(setAnswer(QString)));
-std::cerr<<"Answer in CutDialog= "<<qPrintable(getAnswer())<<std::endl;
+
 
 //    CutDialog->exec();
 }
@@ -1427,14 +1429,20 @@ void filetool::on_actionrecycle_triggered()
 void filetool::fileDialog(QString Source,QString Target)
 {
 
+    std::cerr <<"In Filetool FileDialog Source\t"<<qPrintable( Source)<<std::endl;
+    std::cerr <<"In filetool FileDialog Target\t"<<qPrintable(Target)<<std::endl;
 
-
-//    pDialog->show();
-//    pDialog->raise();
-//    pDialog->activateWindow();
+    pDialog->show();
+    pDialog->raise();
+    pDialog->activateWindow();
     pDialog->setFiles(Source,Target);
-    pDialog->exec();
+
+    std::cerr <<"Copying Source \t"<<qPrintable(Source)<<std::endl;
+    std::cerr <<"to Target \t"<<qPrintable(Target)<<std::endl;
+
+//    pDialog->exec();
     connect(pDialog,SIGNAL(sendAnswer(QString)),this,SLOT(setAnswer(QString)));
+    connect(pasteDialog, SIGNAL(CloseOverWriteDialog(bool)), pDialog, SLOT(closedialog(bool)));
 
 
 
@@ -1444,9 +1452,27 @@ void filetool::fileDialog(QString Source,QString Target)
 }
 void filetool::setAnswer(QString answer)
 {
+    global_mutex.lock();
+    if((getAnswer()!=""))
+    {
+
+       global_var_set.wait(&global_mutex);
+
+    }
     Answer=answer;
 
-    std::cerr<<"in setAnswer Answer= "<<qPrintable(Answer)<<std::endl;
+//    std::cerr<<"in filetool setAnswer Answer= "<<qPrintable(getAnswer())<<std::endl;
+
+
+
+    pasteDialog->setAnswer(getAnswer());
+    global_var_not_set.wakeOne();
+          global_mutex.unlock();
+
+    Answer="";
+
+
+
 
 
 }

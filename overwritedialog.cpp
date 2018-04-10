@@ -2,6 +2,7 @@
 #include "ui_overwritedialog.h"
 #include <iostream>
 
+
 OverwriteDialog::OverwriteDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::OverwriteDialog)
@@ -22,40 +23,65 @@ void OverwriteDialog::setFiles(QString source,QString target)
 {
     SourceFile=source;
     TargetFile=target;
-    ui->label->setText(tr("File %2 exists, should I overwrite it \n with file %1").arg(SourceFile).arg(TargetFile));
+    ui->label->setText(tr("File \n%2 \nexists, should I overwrite it  with file \n %1").arg(SourceFile).arg(TargetFile));
 
 
 }
 void OverwriteDialog::on_pushButton_4_clicked()
 {
-  emit sendAnswer("Yes");
-    std::cerr<<"answer Yes"<<std::endl;
-  event->accept();
+
+//     std::cerr<<"answer Yes"<<std::endl;
+     close();
+     emit sendAnswer("Yes");
 
 
 }
 
 void OverwriteDialog::on_pushButton_3_clicked()
 {
+
+//     std::cerr<<"answer YesToAll"<<std::endl;
+     close();
+
    emit sendAnswer("YesToAll");
-    std::cerr<<"answer YesToAll"<<std::endl;
-    event->accept();
+
 
 }
 
 void OverwriteDialog::on_pushButton_2_clicked()
 {
+
+//     std::cerr<<"answer No"<<std::endl;
+      close();
    emit sendAnswer("No");
-    std::cerr<<"answer No"<<std::endl;
- event->accept();
+
+
 
 }
 
 void OverwriteDialog::on_pushButton_clicked()
 {
+
+//     std::cerr<<"answer NoToAll"<<std::endl;
+     close();
+
    emit sendAnswer("NoToAll");
-    std::cerr<<"answer NoToAll"<<std::endl;
-  event->accept();
+
 
 }
+void OverwriteDialog::closedialog(bool answer)
+{
 
+    if (answer)
+    {
+        close();
+//        event->accept();
+    }
+    else
+    {
+//        event->ignore();
+    }
+
+
+
+}

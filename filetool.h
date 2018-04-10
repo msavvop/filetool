@@ -1,6 +1,7 @@
 #ifndef FILETOOL_H
 #define FILETOOL_H
 
+
 #include <QDirModel>
 #include <QFileSystemModel>
 #include <QItemSelectionModel>
@@ -14,8 +15,16 @@
 #include<iostream>
 #include <utility>
 #include<overwritedialog.h>
+#include <QMutex>
+#include <thread.h>
+
+
+
+
 
 using std::reference_wrapper;
+
+
 
  class UndoRedo {
 // This class is made for objects that keep information nessesary to undo and redo commands
@@ -101,6 +110,7 @@ signals:
 int combo_change(int);
 
 bool answerSet(QString);
+
 public slots:
 
 void fileDialog(QString,QString);
@@ -218,6 +228,7 @@ private:
     PasteDialog *pasteDialog;
     QVector<UndoRedo> undovector;
     QVector<UndoRedo> redovector;
+    QMutex mutex2;
 };
 
 #endif // FILETOOL_H

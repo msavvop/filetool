@@ -1,6 +1,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+
 #include <QObject>
 #include <QFileSystemModel>
 #include <QThread>
@@ -9,6 +10,8 @@
 #include <QMutexLocker>
 #include <QWaitCondition>
 #include <QStyleOption>
+
+
 
 
 
@@ -32,9 +35,16 @@ public:
     protected:
     void run();
 
-    private:
 
+public:
+    static bool NoToAll;
+    static bool YesToAll;
 
+private:
+    QMutex mutex1;
+    QMutex mutex2;
+    QWaitCondition var_not_set;
+    QWaitCondition var_set;
 
     QString Answer;
     int count;
@@ -44,8 +54,13 @@ public:
     QFileSystemModel *dirModel;
     QFileSystemModel *treeViewDirModel;
     QDirModel *dirModel2;
+
     QMutex mutex;
+
     int Size;
+    QModelIndex pathSetIndex;
+    QModelIndex TargetDirSetIndex;
+    QModelIndex targetIndexTempSet;
 
 
     signals:
@@ -53,12 +68,14 @@ public:
    void dialogComplete(bool);
    void fileexists(QString, QString);
     void send_Answer(QString);
+    void CloseOverWriteDialog(bool);
 
 public slots:
     void stop();
 
     void set_Answer(QString);
     QString getAnswer();
+    bool Implement_Answer();
 };
 
 #endif // THREAD_H
