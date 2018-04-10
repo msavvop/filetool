@@ -1,10 +1,15 @@
 #ifndef PASTEDIALOG_H
 #define PASTEDIALOG_H
+
+
 #include "thread.h"
 #include <QDialog>
 #include<QEvent>
 #include <QCloseEvent>
 #include <QFileSystemModel>
+
+
+
 class QCloseEvent;
 class QModelIndex;
 namespace Ui {
@@ -25,11 +30,16 @@ private:
     Thread *pathread;
     QString actionString;
    QStringList list;
+   QString Answer;
 
 
   public slots:
 
     void on_Cancel_clicked();
+
+void FileExists(QString Source,QString Target);
+void setAnswer(QString);
+QString getAnswer();
 
     private slots:
 
@@ -38,6 +48,9 @@ private:
 signals:
 
 void dialogComplete(bool);
+void file_Exists(QString Source,QString Target);
+void sendAnswer(QString);
+void CloseOverWriteDialog(bool);
 };
 
 #endif // PASTEDIALOG_H

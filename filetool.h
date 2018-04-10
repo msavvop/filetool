@@ -1,6 +1,7 @@
 #ifndef FILETOOL_H
 #define FILETOOL_H
 
+
 #include <QDirModel>
 #include <QFileSystemModel>
 #include <QItemSelectionModel>
@@ -13,8 +14,17 @@
 #include <QString>
 #include<iostream>
 #include <utility>
+#include<overwritedialog.h>
+#include <QMutex>
+#include <thread.h>
+
+
+
+
 
 using std::reference_wrapper;
+
+
 
  class UndoRedo {
 // This class is made for objects that keep information nessesary to undo and redo commands
@@ -95,9 +105,17 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 
+
 signals:
 int combo_change(int);
 
+bool answerSet(QString);
+
+public slots:
+
+void fileDialog(QString,QString);
+void setAnswer(QString);
+QString getAnswer();
 
 private slots:
  void on_listView_activated(const QModelIndex &index);
@@ -181,13 +199,14 @@ void ReadSettings();
 
 private:
     Ui::filetool *ui;
-
+    QString Answer;
     QItemSelectionModel *selModel;
     QFileSystemModel *dirModel;
     QFileSystemModel *treeViewDirModel;
     QDirModel *dirModel2; // I used QDirModel which is deprived because some commands and especially
     //                       index(j,0,dirModel2->index(path)) were not not working properly
     //                       in QFileSystemModel when I was writing the code
+
 
     QModelIndexList indexHistoryList;
     QModelIndexList indexForwardList;
@@ -205,9 +224,11 @@ private:
     UndoRedo NextObject;
     UndoRedo command;
 
-
+    OverwriteDialog *pDialog;
+    PasteDialog *pasteDialog;
     QVector<UndoRedo> undovector;
     QVector<UndoRedo> redovector;
+    QMutex mutex2;
 };
 
 #endif // FILETOOL_H
