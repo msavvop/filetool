@@ -25,8 +25,11 @@ only in table view mode for some reason.
 The command delete is permanent and cannot be undone so be careful because what you delete is 
 deleted permanently and cannot be undone.
 
-To list a few of the problems: Overwrite control has not been implemented, and this affetcs undo and redo.
-Thus, if you copy or move a file over an other file with the same name, you will lose data. It is not 
+Overwrite control for copy is now implemented and tested. After many tests it seems that it works ok.
+
+To list a few of the problems: Overwrite control for move has not been implemented, and this affetcs 
+undo and redo.
+Thus, if you move a file over an other file with the same name, you will lose data. It is not 
 difficult to implement it and finally I will, but I am doing this in my free time to learn Qt, 
 so there is no hurry. 
 I corrected the problem of multiple "paste" that would result in data loss 
