@@ -35,7 +35,7 @@ PasteDialog::~PasteDialog()
 
 
 
-void PasteDialog::setAction(QString str, QStringList List)
+void PasteDialog::setAction(QString str,QString Source, QStringList List)
 {
     int Size=0;
     actionString=str;
@@ -45,7 +45,7 @@ void PasteDialog::setAction(QString str, QStringList List)
 
 
 
-    pathread->setthread(actionString,list);
+    pathread->setthread(actionString,Source,list);
     Size=pathread->showSize();
      std::cerr <<"In dialog Size= \t"<<Size<<std::endl;
      ui->progressBar->setRange(0,Size );

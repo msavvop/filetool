@@ -701,6 +701,7 @@ void filetool::on_action_cut_triggered()
         List=selectedFiles();
 
          command.set_UndoRedoSourceDir(ParentDir_name);
+         Source=ParentDir_name;
 
 
 
@@ -737,6 +738,8 @@ void filetool::on_actionC_opy_triggered()
     {
         copyIndicator=true;
         command.set_UndoRedoSourceDir(ParentDir_name);
+        Source=ParentDir_name;
+
 
         List.clear();
         List=selectedFiles();
@@ -1322,7 +1325,7 @@ void filetool::Delete()
 QString str="delete";
 PasteDialog *DeleteDialog;
 DeleteDialog=new PasteDialog(this);
-DeleteDialog->setAction(str,List);
+DeleteDialog->setAction(str,Source,List);
 busy=true;
 
 
@@ -1340,7 +1343,7 @@ busy=true;
 QString str1="copy";
 PasteDialog *CopyDialog;
 CopyDialog=new PasteDialog(this);
-CopyDialog->setAction(str1,List);
+CopyDialog->setAction(str1,Source,List);
 
  CopyDialog->show();
  CopyDialog->raise();
@@ -1359,7 +1362,7 @@ busy=true;
 QString str2="cut";
 PasteDialog *CutDialog;
 CutDialog=new PasteDialog(this);
-CutDialog->setAction(str2,List);
+CutDialog->setAction(str2,Source,List);
 
 
 CutDialog->show();

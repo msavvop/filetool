@@ -229,6 +229,7 @@ private:
     QVector<UndoRedo> undovector;
     QVector<UndoRedo> redovector;
     QMutex mutex2;
+    QString Source;
 };
 
 #endif // FILETOOL_H
