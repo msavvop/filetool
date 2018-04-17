@@ -22,13 +22,16 @@ class Thread : public QThread
 public:
     explicit Thread();
 
-    void setthread(QString ActionString,   QStringList list);
+    void setthread(QString ActionString, QString Source,  QStringList list);
 
-    bool fileaction(QString ActionString,  QStringList list);
+    bool fileaction(QString ActionString, QString Source,  QStringList list);
 
     bool copy(QModelIndex Index, QModelIndexList *copyList);
+    bool move(QModelIndex Index, QModelIndexList *copyList);
     bool getSize(QModelIndex Index, QModelIndexList *copyList);
-
+    bool ImplementAnswerInCopy();
+    bool ImplementAnswerInMove();
+    bool DeleteEmptyDirs(QModelIndex&,QModelIndexList*);
 
 
     int showSize();
@@ -51,9 +54,11 @@ private:
     QString ActionStr;
     volatile bool stopped;
     QStringList List;
+    QString Source;
     QFileSystemModel *dirModel;
     QFileSystemModel *treeViewDirModel;
     QDirModel *dirModel2;
+
 
     QMutex mutex;
 
@@ -75,7 +80,7 @@ public slots:
 
     void set_Answer(QString);
     QString getAnswer();
-    bool Implement_Answer();
+
 };
 
 #endif // THREAD_H

@@ -24,7 +24,7 @@ public:
     explicit PasteDialog(QWidget *parent );
     ~PasteDialog();
 
-    void setAction(QString str, QStringList List);
+    void setAction(QString str, QString Source, QStringList List);
 private:
     Ui::PasteDialog *ui;
     Thread *pathread;
