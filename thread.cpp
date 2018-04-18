@@ -136,12 +136,19 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
 
                 if (dirModel->fileInfo(index).isDir())
                 {
+                    if(index.isValid())
+                    {
+                        ok = dirModel->remove(index);
+                    }
 
-                    ok = dirModel->remove(index);
+
                 }
                 else
                 {
-                    ok = dirModel->remove(index);
+                    if(index.isValid())
+                    {
+                        ok = dirModel->remove(index);
+                    }
                 }
 
 
@@ -355,12 +362,6 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
                         std::cerr <<"Some Source directories are not deleted"<<std::endl;
 
                     }
-
-
-
-
-
-
 
                 return true;
     }
@@ -1432,10 +1433,9 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 {
     int count1=0;
 
+
      QDirModel *dirModel3;
      dirModel3=new QDirModel;
-     QFileSystemModel *dirModel4;
-     dirModel4=new QFileSystemModel;
     count=0;
      const QString path4=dirModel->filePath(SourceIndex);
 
@@ -1521,9 +1521,12 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 
                 if (newSourceList->isEmpty())
                 {
-                    dirModel->remove(newTargetIndex);
-                     std::cerr <<"Remove Dir \t"<<qPrintable(dirName2)<<std::endl;
-                     count1++;
+                   if (newTargetIndex.isValid())
+                   {
+                       dirModel->remove(newTargetIndex);
+                        std::cerr <<"Remove Dir \t"<<qPrintable(dirName2)<<std::endl;
+                        count1++;
+                   }
                      continue;
                 }
                 else
@@ -1538,10 +1541,13 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
                     if (ok)
                     {
 
-                        dirModel->remove(newTargetIndex);
-                        count1++;
+                        if(newTargetIndex.isValid())
+                        {
+                            dirModel->remove(newTargetIndex);
+                            count1++;
 
-                          std::cerr <<"in ok Remove Dir \t"<<qPrintable(dirName3)<<std::endl;
+                              std::cerr <<"in ok Remove Dir \t"<<qPrintable(dirName3)<<std::endl;
+                        }
                     }
                     else
                     {
