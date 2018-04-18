@@ -555,9 +555,18 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                             QModelIndexList *tempList;
                             tempList=new QModelIndexList;
                              tempList->push_back(indexTemp);
+
                              std::cerr <<"Copying\t"<<qPrintable( path2)<<std::endl;
                              std::cerr <<"list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
+
+                             if((indexTemp.isValid())&&(targetIndex.isValid()))
+                             {
                                ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
+                             }
+                             else
+                             {
+                                 ok=false;
+                             }
 
 
                                if (!ok)
@@ -652,10 +661,18 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                         tempList=new QModelIndexList;
                          QString TargetDir=dirModel->filePath(targetIndex);
                           tempList->push_back(indexTemp);
+
                           std::cerr <<"IN ELSE Copying\t"<<qPrintable( path2)<<std::endl;
                           std::cerr <<"IN ELSE list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
 
+                          if((indexTemp.isValid())&&(targetIndex.isValid()))
+                          {
+                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
+                           }
+                          else
+                          {
+                              ok=false;
+                          }
 
                             if (!ok)
                             {
@@ -880,10 +897,18 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                             QModelIndexList *tempList;
                             tempList=new QModelIndexList;
                              tempList->push_back(indexTemp);
+
                              std::cerr <<"Moving\t"<<qPrintable( path2)<<std::endl;
                              std::cerr <<"list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                               ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
 
+                             if ((indexTemp.isValid())&&(targetIndex.isValid()))
+                             {
+                               ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
+                              }
+                             else
+                             {
+                                 ok=false;
+                             }
 
                                if (!ok)
                                {
@@ -977,10 +1002,18 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                         tempList=new QModelIndexList;
                          QString TargetDir=dirModel->filePath(targetIndex);
                           tempList->push_back(indexTemp);
+
                           std::cerr <<"IN ELSE Moving\t"<<qPrintable( path2)<<std::endl;
                           std::cerr <<"IN ELSE list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
 
+                          if((indexTemp.isValid())&&(targetIndex.isValid()))
+                          {
+                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
+                           }
+                          else
+                          {
+                              ok=false;
+                          }
 
                             if (!ok)
                             {
@@ -1173,11 +1206,19 @@ bool Thread::ImplementAnswerInCopy()
     QString pathSet=dirModel->filePath(pathSetIndex);
     QString TargetDirSet=dirModel->filePath(TargetDirSetIndex);
 
-    if (!pathSetIndex.isValid()) std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
-    if (!TargetDirSetIndex.isValid()) std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+    if (!pathSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
+        return false;
+    }
+    if (!TargetDirSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+        return false;
+    }
 
     QString path2=dirModel->filePath(pathSetIndex);
-//    QModelIndex indexTemp=dirModel->index(path2);
+
 
     if(getAnswer()!="")
     {
@@ -1312,11 +1353,19 @@ bool Thread::ImplementAnswerInMove()
     QString pathSet=dirModel->filePath(pathSetIndex);
     QString TargetDirSet=dirModel->filePath(TargetDirSetIndex);
 
-    if (!pathSetIndex.isValid()) std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
-    if (!TargetDirSetIndex.isValid()) std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+    if (!pathSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
+        return false;
+    }
+    if (!TargetDirSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+        return false;
+    }
 
     QString path2=dirModel->filePath(pathSetIndex);
-//    QModelIndex indexTemp=dirModel->index(path2);
+
 
     if(getAnswer()!="")
     {
