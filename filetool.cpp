@@ -9,6 +9,7 @@
 QMutex global_mutex;
 QWaitCondition global_var_not_set;
 QWaitCondition global_var_set;
+int HowManyThreads;
 
 filetool::filetool(QWidget *parent) :
     QMainWindow(parent),
@@ -24,6 +25,7 @@ filetool::filetool(QWidget *parent) :
     selModel=new QItemSelectionModel(dirModel);
     dirModel2=new QDirModel;
     pDialog=new OverwriteDialog();
+    HowManyThreads=0;
 
     connect(this, SIGNAL(combo_change(int)),this,SLOT(setCurrentComboIndex(int)));
 
@@ -770,22 +772,30 @@ void filetool::on_action_paste_triggered()
 
     if(copyIndicator==true)
     {
-        Copy();
 
+        mutex2.lock();
         command.set_UndoRedoCommand("copy");
         command.set_UndoRedoList(List);
         command.set_UndoRedoTargetDir(newname);
+        undovector.push_back(command);
+        mutex2.unlock();
+
+         Copy();
     }
     else
     {
-        Cut();
 
+        mutex2.lock();
         command.set_UndoRedoCommand("cut");
         command.set_UndoRedoList(List);
         command.set_UndoRedoTargetDir(newname);
+        undovector.push_back(command);
+        mutex2.unlock();
+
+         Cut();
     }
 
-    undovector.push_back(command);
+
     List.clear();
 }
 
@@ -800,6 +810,8 @@ void filetool::on_actionAbout_triggered()
 
 void filetool::on_actionRe_do_triggered()
 {
+    if (HowManyThreads!=0) return;
+
     QStringList List1;
     QString SourceDir;
     QString TargetDir;
@@ -1042,6 +1054,8 @@ void filetool::on_actionRe_do_triggered()
 
 void filetool::on_action_undo_triggered()
 {
+    if (HowManyThreads!=0) return;
+
      QStringList List1;
      QString SourceDir;
      QString TargetDir;

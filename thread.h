@@ -40,8 +40,9 @@ public:
 
 
 public:
-    static bool NoToAll;
-    static bool YesToAll;
+
+    bool NoToAll;
+    bool YesToAll;
 
 private:
     QMutex mutex1;
@@ -60,7 +61,7 @@ private:
     QDirModel *dirModel2;
 
 
-    QMutex mutex;
+
 
     int Size;
     QModelIndex pathSetIndex;

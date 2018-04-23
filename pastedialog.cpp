@@ -7,6 +7,7 @@
 extern QMutex global_mutex;
 extern QWaitCondition global_var_not_set;
 extern QWaitCondition global_var_set;
+extern int HowManyThreads;
 
 PasteDialog::PasteDialog(QWidget *parent = 0) :
     QDialog(parent),
@@ -27,8 +28,7 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
 
 PasteDialog::~PasteDialog()
 {
-   pathread->NoToAll=false;
-    pathread->YesToAll=false;
+    HowManyThreads--;
     emit CloseOverWriteDialog(true);
     delete ui;
 }
@@ -40,8 +40,22 @@ void PasteDialog::setAction(QString str,QString Source, QStringList List)
     int Size=0;
     actionString=str;
     list=List;
+    for(int i=0;i<list.size()-1;i++)
+    {
+        if(str=="delete")
+        {
+            ui->label->setText(tr("%1\n  %2").arg(actionString).arg(list.at(i)));
 
-    ui->label->setText(tr("%1").arg(actionString));
+        }
+        else
+        {
+            ui->label->setText(tr("%1\n  %2 \n to %3").arg(actionString).arg(list.at(i)).arg(list.last()));
+
+        }
+
+
+    }
+
 
 
 
@@ -84,7 +98,10 @@ void PasteDialog::closeEvent(QCloseEvent *event)
 
 void PasteDialog::on_Cancel_clicked()
 {
-    pathread->stop();
+//        pathread->requestInterruption();
+
+        pathread->stop();
+
 
 }
 

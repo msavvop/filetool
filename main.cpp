@@ -5,6 +5,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QCoreApplication::setOrganizationName("MSavvopOpenSource");
+    QCoreApplication::setOrganizationDomain("m_savvop.otenet.gr");
+    QCoreApplication::setApplicationName("filetool");
+
+
+
     QTranslator filetoolTranslator;
     QString filename = QString("filetool_%1").arg(QLocale::system().name());
 
