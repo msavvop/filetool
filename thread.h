@@ -53,7 +53,7 @@ private:
     QString Answer;
     int count;
     QString ActionStr;
-    volatile bool stopped;
+//    volatile bool stopped;
     QStringList List;
     QString Source;
     QFileSystemModel *dirModel;
@@ -77,7 +77,7 @@ private:
     void CloseOverWriteDialog(bool);
 
 public slots:
-    void stop();
+//    void stop();
 
     void set_Answer(QString);
     QString getAnswer();

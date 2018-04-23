@@ -8,13 +8,11 @@ extern QWaitCondition global_var_not_set;
 extern QWaitCondition global_var_set;
 extern int HowManyThreads;
 
-//bool Thread::NoToAll=false;
-//bool Thread::YesToAll=false;
 
 Thread::Thread()
 {
 
-      stopped = false;
+//      stopped = false;
 
       NoToAll=false;
       YesToAll=false;
@@ -56,13 +54,14 @@ void Thread::run()
 }
 
 
-
+/*
 void Thread::stop()
 {
 
     stopped = true;
 
 }
+*/
 
 int Thread::showSize()
 {
@@ -130,23 +129,23 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
 
             {
 
- /*               if (this->isInterruptionRequested())
+                if (this->isInterruptionRequested())
                 {
 
-                     std::cerr <<"Delete Failed\n"<<"Item is \t"<<qPrintable( dirModel->filePath(index))<<std::endl;
+                     std::cerr <<"Delete Failed"<<std::endl;
 
                     return false;
                 }
-*/
 
+/*
                 if (stopped)
                 {
-                     std::cerr <<"Delete Failed\n"<<"Item is \t"<<qPrintable( dirModel->filePath(index))<<std::endl;
+                     std::cerr <<"Delete Failed"<<std::endl;
 
                     return false;
                 }
 
-
+*/
 
 
                 index=dirModel->index(List[i]);
@@ -407,24 +406,23 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
         {
 
 
-/*            if (this->isInterruptionRequested())
+            if (this->isInterruptionRequested())
             {
-
 
                 std::cerr <<"Copy Failed in subroutine copy"<<std::endl;
 
                 return false;
             }
+
+/*            if (stopped)
+            {
+
+                std::cerr <<"Copy Failed in subroutine copy"<<std::endl;
+
+                return false;
+            }
+
 */
-            if (stopped)
-            {
-
-                std::cerr <<"Copy Failed in subroutine copy"<<std::endl;
-
-                return false;
-            }
-
-
 
 
 
@@ -757,7 +755,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
         {
 
 
-/*            if (this->isInterruptionRequested())
+            if (this->isInterruptionRequested())
             {
 
 
@@ -765,8 +763,8 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
 
                 return false;
             }
-*/
 
+/*
             if (stopped)
             {
 
@@ -775,7 +773,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                 return false;
             }
 
-
+*/
             QModelIndex index=sourceMoveList->at(i);
 
 

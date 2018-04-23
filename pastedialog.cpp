@@ -28,8 +28,9 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
 
 PasteDialog::~PasteDialog()
 {
-    HowManyThreads--;
+
     emit CloseOverWriteDialog(true);
+    HowManyThreads--;
     delete ui;
 }
 
@@ -98,9 +99,9 @@ void PasteDialog::closeEvent(QCloseEvent *event)
 
 void PasteDialog::on_Cancel_clicked()
 {
-//        pathread->requestInterruption();
+        pathread->requestInterruption();
 
-        pathread->stop();
+//        pathread->stop();
 
 
 }
