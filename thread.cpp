@@ -6,15 +6,17 @@
 extern QMutex global_mutex;
 extern QWaitCondition global_var_not_set;
 extern QWaitCondition global_var_set;
+extern int HowManyThreads;
 
-bool Thread::NoToAll=false;
-bool Thread::YesToAll=false;
 
 Thread::Thread()
 {
 
-      stopped = false;
+//      stopped = false;
 
+      NoToAll=false;
+      YesToAll=false;
+      HowManyThreads++;
       Answer="";
       dirModel=new QFileSystemModel;
       dirModel2=new QDirModel;
@@ -36,27 +38,30 @@ void Thread::run()
 {
     bool ok;
 
-        ok=fileaction(ActionStr,Source,List);
-        if(!ok)
-        {
-            std::cerr <<"fileaction Failed\n"<<std::endl;
 
-        }
+            ok=fileaction(ActionStr,Source,List);
 
-        emit(dialogComplete(true));
+            if(!ok)
+            {
+                std::cerr <<"fileaction Failed\n"<<std::endl;
+//                terminate();
 
+            }
+
+                deleteLater();
+                emit(dialogComplete(true));
 
 }
 
 
-
+/*
 void Thread::stop()
 {
-    mutex.lock();
+
     stopped = true;
-    mutex.unlock();
 
 }
+*/
 
 int Thread::showSize()
 {
@@ -123,30 +128,45 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
             for (int i=0;i<(List.size())-1;i++)
 
             {
+
+                if (this->isInterruptionRequested())
+                {
+
+                     std::cerr <<"Delete Failed"<<std::endl;
+
+                    return false;
+                }
+
+/*
+                if (stopped)
+                {
+                     std::cerr <<"Delete Failed"<<std::endl;
+
+                    return false;
+                }
+
+*/
+
+
                 index=dirModel->index(List[i]);
 
 
-
-
-
                 if (!index.isValid())      continue;
-
-                std::cerr <<"Deleting\t"<<qPrintable( List[i])<<"\tin FileAction"<<std::endl;
 
 
                 if (dirModel->fileInfo(index).isDir())
                 {
                     if(index.isValid())
                     {
+                         std::cerr <<"Deleting\t"<<qPrintable( List[i])<<"\tin FileAction"<<std::endl;
                         ok = dirModel->remove(index);
                     }
-
-
                 }
                 else
                 {
                     if(index.isValid())
                     {
+                         std::cerr <<"Deleting\t"<<qPrintable( List[i])<<"\tin FileAction"<<std::endl;
                         ok = dirModel->remove(index);
                     }
                 }
@@ -155,19 +175,6 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
 
                 count++;
 
-                mutex.lock();
-
-                if (stopped)
-                {
-                    stopped = false;
-                    mutex.unlock();
-
-                    std::cerr <<"Delete Failed\n"<<"Item is \t"<<qPrintable( dirModel->filePath(index))<<std::endl;
-
-                    return false;
-                }
-
-                mutex.unlock();
 
 
                 emit valueChanged(count);
@@ -221,11 +228,12 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
                }
 
 
+
                ok=copy(Index,copyList);
 
                 if(!ok)
                 {
-                    std::cerr <<"Copy Failed\n"<<std::endl;
+                    std::cerr <<"Copy Failed in fileaction\n"<<std::endl;
                     return false;
                 }
 
@@ -346,6 +354,7 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
                }
 
 
+
                ok=move(Index,moveList);
 
                 if(!ok)
@@ -396,19 +405,26 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
         for (int i=0;i<sourceCopyList->size();i++)
         {
 
-            mutex.lock();
 
-            if (stopped)
+            if (this->isInterruptionRequested())
             {
-                stopped = false;
-                mutex.unlock();
 
-                std::cerr <<"Copy Failed\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+                std::cerr <<"Copy Failed in subroutine copy"<<std::endl;
 
                 return false;
             }
 
-            mutex.unlock();
+/*            if (stopped)
+            {
+
+                std::cerr <<"Copy Failed in subroutine copy"<<std::endl;
+
+                return false;
+            }
+
+*/
+
+
 
             QModelIndex index=sourceCopyList->at(i);
 
@@ -505,7 +521,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                 if (!ok)
                 {
 
-                    std::cerr <<"Copy  Failed\n"<<std::endl;
+                    std::cerr <<"Copy  Failed(returned with failure)\n"<<std::endl;
                     return false;
 
                 }
@@ -555,9 +571,18 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                             QModelIndexList *tempList;
                             tempList=new QModelIndexList;
                              tempList->push_back(indexTemp);
+
                              std::cerr <<"Copying\t"<<qPrintable( path2)<<std::endl;
                              std::cerr <<"list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
+
+                             if((indexTemp.isValid())&&(targetIndex.isValid()))
+                             {
                                ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
+                             }
+                             else
+                             {
+                                 ok=false;
+                             }
 
 
                                if (!ok)
@@ -652,10 +677,18 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                         tempList=new QModelIndexList;
                          QString TargetDir=dirModel->filePath(targetIndex);
                           tempList->push_back(indexTemp);
+
                           std::cerr <<"IN ELSE Copying\t"<<qPrintable( path2)<<std::endl;
                           std::cerr <<"IN ELSE list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
 
+                          if((indexTemp.isValid())&&(targetIndex.isValid()))
+                          {
+                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::CopyAction,-1,-1,targetIndex);
+                           }
+                          else
+                          {
+                              ok=false;
+                          }
 
                             if (!ok)
                             {
@@ -721,20 +754,26 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
         for (int i=0;i<sourceMoveList->size();i++)
         {
 
-            mutex.lock();
 
-            if (stopped)
+            if (this->isInterruptionRequested())
             {
-                stopped = false;
-                mutex.unlock();
 
-                std::cerr <<"Move Failed\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+                 std::cerr <<"Move Failed in subroutine move"<<std::endl;
 
                 return false;
             }
 
-            mutex.unlock();
+/*
+            if (stopped)
+            {
 
+                std::cerr <<"Move Failed in subroutine move"<<std::endl;
+
+                return false;
+            }
+
+*/
             QModelIndex index=sourceMoveList->at(i);
 
 
@@ -830,7 +869,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                 if (!ok)
                 {
 
-                    std::cerr <<"Move  Failed\n"<<std::endl;
+                    std::cerr <<"Move  Failed (returned with failure)\n"<<std::endl;
                     return false;
 
                 }
@@ -880,10 +919,18 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                             QModelIndexList *tempList;
                             tempList=new QModelIndexList;
                              tempList->push_back(indexTemp);
+
                              std::cerr <<"Moving\t"<<qPrintable( path2)<<std::endl;
                              std::cerr <<"list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                               ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
 
+                             if ((indexTemp.isValid())&&(targetIndex.isValid()))
+                             {
+                               ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
+                              }
+                             else
+                             {
+                                 ok=false;
+                             }
 
                                if (!ok)
                                {
@@ -977,10 +1024,18 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                         tempList=new QModelIndexList;
                          QString TargetDir=dirModel->filePath(targetIndex);
                           tempList->push_back(indexTemp);
+
                           std::cerr <<"IN ELSE Moving\t"<<qPrintable( path2)<<std::endl;
                           std::cerr <<"IN ELSE list Target Index Dir\t"<<qPrintable(TargetDir)<<std::endl;
-                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
 
+                          if((indexTemp.isValid())&&(targetIndex.isValid()))
+                          {
+                            ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,targetIndex);
+                           }
+                          else
+                          {
+                              ok=false;
+                          }
 
                             if (!ok)
                             {
@@ -1173,11 +1228,19 @@ bool Thread::ImplementAnswerInCopy()
     QString pathSet=dirModel->filePath(pathSetIndex);
     QString TargetDirSet=dirModel->filePath(TargetDirSetIndex);
 
-    if (!pathSetIndex.isValid()) std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
-    if (!TargetDirSetIndex.isValid()) std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+    if (!pathSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
+        return false;
+    }
+    if (!TargetDirSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+        return false;
+    }
 
     QString path2=dirModel->filePath(pathSetIndex);
-//    QModelIndex indexTemp=dirModel->index(path2);
+
 
     if(getAnswer()!="")
     {
@@ -1312,11 +1375,19 @@ bool Thread::ImplementAnswerInMove()
     QString pathSet=dirModel->filePath(pathSetIndex);
     QString TargetDirSet=dirModel->filePath(TargetDirSetIndex);
 
-    if (!pathSetIndex.isValid()) std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
-    if (!TargetDirSetIndex.isValid()) std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+    if (!pathSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid PathSet\t"<<qPrintable(pathSet)<<std::endl;
+        return false;
+    }
+    if (!TargetDirSetIndex.isValid())
+    {
+        std::cerr <<"Not Valid TargetDirSet\t"<<qPrintable(TargetDirSet)<<std::endl;
+        return false;
+    }
 
     QString path2=dirModel->filePath(pathSetIndex);
-//    QModelIndex indexTemp=dirModel->index(path2);
+
 
     if(getAnswer()!="")
     {

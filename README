@@ -27,8 +27,17 @@ deleted permanently and cannot be undone.
 
 Overwrite control for copy and cut (move) is now implemented and tested. 
 After many tests it seems that it works ok. Undo and redo work ok  with overwrite 
-control but the implementation does not conform with the Microsoft Windows Explorer yet 
+control but the implementation does not conform with the Microsoft Windows Explorer 
+or with the linux file manager yet 
 and you might lose data if you use undo together with the overwrite. 
+I think I will make it similar with the linux file manager.
 I am going to fix that next. It is not difficult to implement it and 
 finally I will, but I am doing this in my free time to learn Qt, so there is no hurry. 
+
+In the previous commit I had fixed the problem with the crash when you press the cancel key to cancel
+ongoing file action, and with the reading of the settings of the previous session.
+ As a result the program does not crash when you press the cancel key and it
+ remembers the settings of the last session (size etc.)
+ In this commit I rewrote some part of the code that cancels the ongoing file action when the 
+ button "cancel" is pressed, so that it is more typical way of handling threads.
 

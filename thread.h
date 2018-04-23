@@ -40,8 +40,9 @@ public:
 
 
 public:
-    static bool NoToAll;
-    static bool YesToAll;
+
+    bool NoToAll;
+    bool YesToAll;
 
 private:
     QMutex mutex1;
@@ -52,7 +53,7 @@ private:
     QString Answer;
     int count;
     QString ActionStr;
-    volatile bool stopped;
+//    volatile bool stopped;
     QStringList List;
     QString Source;
     QFileSystemModel *dirModel;
@@ -60,7 +61,7 @@ private:
     QDirModel *dirModel2;
 
 
-    QMutex mutex;
+
 
     int Size;
     QModelIndex pathSetIndex;
@@ -76,7 +77,7 @@ private:
     void CloseOverWriteDialog(bool);
 
 public slots:
-    void stop();
+//    void stop();
 
     void set_Answer(QString);
     QString getAnswer();
