@@ -20,8 +20,6 @@
 
 
 
-
-
 using std::reference_wrapper;
 
 
@@ -67,9 +65,10 @@ public:
            if (UndoRedoTargetDir!=object1.get_UndoRedoTargetDir())return false;
            if ( UndoRedoList.size()!=object1.get_UndoRedoList().size()) return false;
 
-            for (int i; i<UndoRedoList.size();i++)
+            for (int i=0; i<UndoRedoList.size();i++)
             {
-                if (UndoRedoList[i]!=object1.get_UndoRedoList()[i]) return false;
+//               if(  QString::compare((UndoRedoList[i]), (object1.get_UndoRedoList().at(i)), Qt::CaseSensitive)!=0) return false;
+                if ((UndoRedoList[i])!=(object1.get_UndoRedoList().at(i))) return false;
             }
             return true;
 
@@ -102,6 +101,7 @@ public:
     void Delete();
     void Copy();
     void Cut();
+
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 
@@ -116,6 +116,7 @@ public slots:
 void fileDialog(QString,QString);
 void setAnswer(QString);
 QString getAnswer();
+ void UndoRedoCommandLoad(bool Value);
 
 private slots:
  void on_listView_activated(const QModelIndex &index);
@@ -230,6 +231,11 @@ private:
     QVector<UndoRedo> redovector;
     QMutex mutex2;
     QString Source;
+
+    QString CommandString;
+    QString SourceStr;
+    QString newTargetDirName;
+    bool UndoRedoRunning;
 };
 
 #endif // FILETOOL_H

@@ -31,11 +31,13 @@ private:
     QString actionString;
    QStringList list;
    QString Answer;
+   QString ReturnValue;
 
 
   public slots:
 
     void on_Cancel_clicked();
+
 
 void FileExists(QString Source,QString Target);
 void setAnswer(QString);
@@ -51,6 +53,7 @@ void dialogComplete(bool);
 void file_Exists(QString Source,QString Target);
 void sendAnswer(QString);
 void CloseOverWriteDialog(bool);
+void ReturnThisValue(bool);
 };
 
 #endif // PASTEDIALOG_H

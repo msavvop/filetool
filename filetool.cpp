@@ -9,7 +9,13 @@
 QMutex global_mutex;
 QWaitCondition global_var_not_set;
 QWaitCondition global_var_set;
+
+QMutex global_mutex2;
+QWaitCondition global_Return_var_not_set;
+QWaitCondition global_Return_var_set;
+
 int HowManyThreads;
+
 
 filetool::filetool(QWidget *parent) :
     QMainWindow(parent),
@@ -26,6 +32,7 @@ filetool::filetool(QWidget *parent) :
     dirModel2=new QDirModel;
     pDialog=new OverwriteDialog();
     HowManyThreads=0;
+
 
     connect(this, SIGNAL(combo_change(int)),this,SLOT(setCurrentComboIndex(int)));
 
@@ -656,11 +663,11 @@ void filetool::on_tableView_clicked(const QModelIndex &index)
 void filetool::on_action_delete_triggered()
 {
     QModelIndex Index;
-
+    UndoRedoRunning=false;
     List.clear();
 
     List=selectedFiles();
-
+    CommandString="delete";
 
     Index=indexHistoryList.last();
     List.append(dirModel->filePath(Index));//  carefull because I add the path of the current directory as a last element
@@ -677,7 +684,6 @@ void filetool::on_action_delete_triggered()
         Delete();
 
     }
-    List.clear();
 
 
 }
@@ -685,10 +691,10 @@ void filetool::on_action_delete_triggered()
 void filetool::on_action_cut_triggered()
 {
 
-    QModelIndex Index;
+//    QModelIndex Index;
 
-    Index=indexHistoryList.last();
-    QString ParentDir_name=dirModel->filePath(Index);
+//    Index=indexHistoryList.last();
+//    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm move action"),tr("Are you sure that you want to move %1 items?").arg(selModel->selectedIndexes().size()),
@@ -702,8 +708,8 @@ void filetool::on_action_cut_triggered()
 
         List=selectedFiles();
 
-         command.set_UndoRedoSourceDir(ParentDir_name);
-         Source=ParentDir_name;
+//         command.set_UndoRedoSourceDir(ParentDir_name);
+//         Source=ParentDir_name;
 
 
 
@@ -727,10 +733,11 @@ void filetool::on_action_cut_triggered()
 
 void filetool::on_actionC_opy_triggered()
 {
-    QModelIndex Index;
 
-    Index=indexHistoryList.last();
-    QString ParentDir_name=dirModel->filePath(Index);
+//    QModelIndex Index;
+
+//    Index=indexHistoryList.last();
+//    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm copy action"),tr("Are you sure that you want to copy %1 items?").arg(selModel->selectedIndexes().size()),
@@ -739,8 +746,8 @@ void filetool::on_actionC_opy_triggered()
     if(r==QMessageBox::Yes)
     {
         copyIndicator=true;
-        command.set_UndoRedoSourceDir(ParentDir_name);
-        Source=ParentDir_name;
+//        command.set_UndoRedoSourceDir(ParentDir_name);
+//        Source=ParentDir_name;
 
 
         List.clear();
@@ -761,42 +768,72 @@ void filetool::on_actionC_opy_triggered()
 void filetool::on_action_paste_triggered()
 {
     QModelIndex Index;
+    UndoRedoRunning=false;
+    QString commandString;
 
     if(List.isEmpty())  return;
+    QString str=List.at(0);
+
+
+
+
+    QRegExp re=QRegExp("[^/]+$");
+    str.remove(re);
+    Source=str;
+
     Index=indexHistoryList.last();
     QString newname=dirModel->filePath(Index);
     List.append(newname);
 
     std::cerr <<" AT PASTE CopyList[0]=\t"<<qPrintable( List[0])<<std::endl;
+    std::cerr <<" AT PASTE Source\t"<<qPrintable( str)<<std::endl;
     dirModel->setReadOnly(false);
 
     if(copyIndicator==true)
     {
+        Copy();
+        CommandString="copy";
+        SourceStr=str;
+        newTargetDirName=newname;
 
-        mutex2.lock();
-        command.set_UndoRedoCommand("copy");
-        command.set_UndoRedoList(List);
-        command.set_UndoRedoTargetDir(newname);
-        undovector.push_back(command);
-        mutex2.unlock();
 
-         Copy();
     }
     else
     {
+        Cut();
+        CommandString="cut";
+        SourceStr=str;
+        newTargetDirName=newname;
 
-        mutex2.lock();
-        command.set_UndoRedoCommand("cut");
-        command.set_UndoRedoList(List);
-        command.set_UndoRedoTargetDir(newname);
-        undovector.push_back(command);
-        mutex2.unlock();
 
-         Cut();
     }
 
 
-    List.clear();
+/*
+    global_mutex2.lock();
+
+    if(ReturnValue=="")
+    {
+        global_Return_var_set.wait(&global_mutex2);
+    }
+
+    if(ReturnValue=="ok")
+    {
+        UndoRedoCommand(commandString,str,newname);
+        ReturnValue="";
+    }
+    else
+    {
+        ReturnValue="";
+    }
+
+
+
+//    global_Return_var_not_set.wakeOne();
+    global_mutex2.unlock();
+
+*/
+
 }
 
 
@@ -812,11 +849,16 @@ void filetool::on_actionRe_do_triggered()
 {
     if (HowManyThreads!=0) return;
 
+    if(redovector.isEmpty()) return;
+
     QStringList List1;
     QString SourceDir;
     QString TargetDir;
 
-    if(redovector.isEmpty()) return;
+
+     UndoRedoRunning=true;
+
+
 
     PreviousObject=redovector.last();
     redovector.pop_back();
@@ -1049,6 +1091,7 @@ void filetool::on_actionRe_do_triggered()
     }
     List.clear();
 
+
 }
 
 
@@ -1056,12 +1099,16 @@ void filetool::on_action_undo_triggered()
 {
     if (HowManyThreads!=0) return;
 
+    if(undovector.isEmpty()) return;
+
+     UndoRedoRunning=true;
+
      QStringList List1;
      QString SourceDir;
      QString TargetDir;
 
 
-    if(undovector.isEmpty()) return;
+
 
 
     NextObject=undovector.last();
@@ -1331,6 +1378,7 @@ void filetool::on_action_undo_triggered()
 
 
     List.clear();
+
 }
 
 
@@ -1349,6 +1397,9 @@ DeleteDialog->activateWindow();
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
 
+connect(DeleteDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+
+
 }
 
 void filetool::Copy()
@@ -1366,6 +1417,9 @@ connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
 pasteDialog=CopyDialog;
 connect(CopyDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
+connect(CopyDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+
+
 
 
 }
@@ -1388,6 +1442,12 @@ connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()))
 pasteDialog=CutDialog;
 connect(CutDialog,SIGNAL(file_Exists(QString, QString)),this,SLOT(fileDialog(QString,QString)));
 
+connect(CutDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+
+
+
+
+
 
 //    CutDialog->exec();
 }
@@ -1403,15 +1463,24 @@ ui->listView->addAction(ui->action_delete);
 ui->listView->addAction(ui->action_undo);
 ui->listView->addAction(ui->actionRe_do);
 
+
 ui->treeView->addAction(ui->actionC_opy);
 ui->treeView->addAction(ui->action_cut);
-ui->treeView->addAction(ui->action_paste);
-ui->treeView->addAction(ui->action_rename);
+//ui->treeView->addAction(ui->action_paste);
+//ui->treeView->addAction(ui->action_rename);
 ui->treeView->addAction(ui->actionDirectory);
 ui->treeView->addAction(ui->actionrecycle);
 ui->treeView->addAction(ui->action_delete);
 ui->treeView->addAction(ui->action_undo);
 ui->treeView->addAction(ui->actionRe_do);
+
+// No Context menu for past and rename in tree view because
+// it could result in having problems with the undo
+
+// I could write code to avoid that but I thought it is
+// preferable not to allow this from the beginning
+
+
 
 ui->tableView->addAction(ui->actionC_opy);
 ui->tableView->addAction(ui->action_cut);
@@ -1497,4 +1566,52 @@ void filetool::setAnswer(QString answer)
 QString filetool::getAnswer()
 {
     return Answer;
+}
+
+void filetool::UndoRedoCommandLoad(bool ReturnValue)
+{
+    if(UndoRedoRunning==false)
+    {
+        if(ReturnValue==true)
+        {
+            if ((CommandString=="copy")||(CommandString=="cut"))
+            {
+                command.set_UndoRedoCommand(CommandString);
+                std::cerr<<"in filetool CommandString= "<<qPrintable(CommandString)<<std::endl;
+                command.set_UndoRedoList(List);
+                 std::cerr<<"in filetool List.at(0)= "<<qPrintable(List.at(0))<<std::endl;
+                command.set_UndoRedoSourceDir(SourceStr);
+                 std::cerr<<"in filetool SourceStr= "<<qPrintable(SourceStr)<<std::endl;
+                command.set_UndoRedoTargetDir(newTargetDirName);
+                std::cerr<<"in filetool newTargetDirName= "<<qPrintable(newTargetDirName)<<std::endl;
+
+
+
+                if(undovector.isEmpty())
+                {
+                    undovector.push_back(command);
+                    std::cerr<<"in filetool push_back ok (empty) "<<std::endl;
+
+                }
+                else if(command!=undovector.last())
+                {
+                    undovector.push_back(command);
+                    std::cerr<<"in filetool push_back ok (not the same object) "<<std::endl;
+
+                }
+
+
+            }
+
+        }
+
+    }
+    UndoRedoRunning=false;
+    HowManyThreads--;
+    List.clear();
+
+
+
+
+
 }

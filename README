@@ -6,7 +6,8 @@ directories, deletes, moves, renames, etc.
 This program is created with Qt. In order to compile it and 
 run it you need Qt. You can find Qt in https://www.qt.io/download 
 
-It is developed for practicing and learning Qt and not for real use in a filesystem. 
+It is developed for practicing and learning Qt and not for real use in a filesystem.
+ 
 
 I have run many tests and the program seems to be stable and reliable. Nevertheless,
 I would advice caution because  it is  a program that changes the filesystem,
@@ -15,6 +16,7 @@ There are known bugs because this program is not finished. Evenmore I am writing
 to learn writting code with Qt. So it is at best experimental. Thus, you should be careful if you use it. 
 It is best if you first run it in a Virtual Machine with no important data, until you are 
 certain that it works ok. 
+
 
 It can be compiled with Qt in Windows or Linux. It works ok in both operating systems.
 
@@ -34,10 +36,15 @@ I think I will make it similar with the linux file manager.
 I am going to fix that next. It is not difficult to implement it and 
 finally I will, but I am doing this in my free time to learn Qt, so there is no hurry. 
 
-In the previous commit I had fixed the problem with the crash when you press the cancel key to cancel
+In one of the  previous commits I had fixed the problem with the crash when you press the cancel key to cancel
 ongoing file action, and with the reading of the settings of the previous session.
  As a result the program does not crash when you press the cancel key and it
  remembers the settings of the last session (size etc.)
- In this commit I rewrote some part of the code that cancels the ongoing file action when the 
+ In the last commit I rewrote some part of the code that cancels the ongoing file action when the 
  button "cancel" is pressed, so that it is more typical way of handling threads.
+ 
+ In this commit I perfected the undo-redo for copy and move. If you press cancel the copy or move action 
+ that was interupted  is not going into the undo and redo vectors. if some move or some copy 
+ fails it does not go into the undo and redo vectors. It only goes into the undo and redo vectors 
+ only if the action finishes with success. That way it is more difficult to lose data.
 

@@ -51,6 +51,7 @@ private:
     QWaitCondition var_set;
 
     QString Answer;
+
     int count;
     QString ActionStr;
 //    volatile bool stopped;
@@ -75,6 +76,7 @@ private:
    void fileexists(QString, QString);
     void send_Answer(QString);
     void CloseOverWriteDialog(bool);
+    void ReturnThisValue(bool);
 
 public slots:
 //    void stop();

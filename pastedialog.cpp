@@ -7,6 +7,11 @@
 extern QMutex global_mutex;
 extern QWaitCondition global_var_not_set;
 extern QWaitCondition global_var_set;
+
+extern QMutex global_mutex2;
+extern QWaitCondition global_Return_var_not_set;
+extern QWaitCondition global_Return_var_set;
+
 extern int HowManyThreads;
 
 PasteDialog::PasteDialog(QWidget *parent = 0) :
@@ -17,9 +22,11 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
     ui->setupUi(this);
     pathread= new Thread;
     Answer="";
+    ReturnValue="";
     connect(pathread, SIGNAL(valueChanged(int)), ui->progressBar, SLOT(setValue(int )));
     connect(pathread, SIGNAL(dialogComplete(bool)), this, SIGNAL(dialogComplete(bool)));
     connect(pathread,SIGNAL(fileexists( QString,QString)),this,SLOT(FileExists(QString,QString)));
+    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SIGNAL(ReturnThisValue(bool)));
 //    connect(pathread,SIGNAL(fileexists( QString,QString)),this,SIGNAL(file_Exists( QString,QString)));
 //    connect(pathread, SIGNAL(CloseOverWriteDialog(bool)), this, SIGNAL(CloseOverWriteDialog(bool)));
 
@@ -30,9 +37,10 @@ PasteDialog::~PasteDialog()
 {
 
     emit CloseOverWriteDialog(true);
-    HowManyThreads--;
+
     delete ui;
 }
+
 
 
 
@@ -64,12 +72,13 @@ void PasteDialog::setAction(QString str,QString Source, QStringList List)
     Size=pathread->showSize();
      std::cerr <<"In dialog Size= \t"<<Size<<std::endl;
      ui->progressBar->setRange(0,Size );
-    pathread->start();
+
 
 //    connect(this,SIGNAL(sendAnswer(QString)),this,SLOT(setAnswer(QString)));
 //    connect(this,SIGNAL(sendAnswer(QString)),pathread,SIGNAL(send_Answer(QString)));
 
 
+    pathread->start();
 
 }
 

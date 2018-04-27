@@ -6,6 +6,12 @@
 extern QMutex global_mutex;
 extern QWaitCondition global_var_not_set;
 extern QWaitCondition global_var_set;
+
+extern QMutex global_mutex2;
+extern QWaitCondition global_Return_var_not_set;
+extern QWaitCondition global_Return_var_set;
+
+
 extern int HowManyThreads;
 
 
@@ -20,6 +26,7 @@ Thread::Thread()
       Answer="";
       dirModel=new QFileSystemModel;
       dirModel2=new QDirModel;
+
 
 }
 
@@ -36,8 +43,9 @@ void Thread::setthread(QString ActionString, QString source,QStringList list)
 
 void Thread::run()
 {
-    bool ok;
 
+    bool ok;
+   
 
             ok=fileaction(ActionStr,Source,List);
 
@@ -46,12 +54,23 @@ void Thread::run()
                 std::cerr <<"fileaction Failed\n"<<std::endl;
 //                terminate();
 
-            }
 
-                deleteLater();
-                emit(dialogComplete(true));
+            }
+            else
+            {
+                 std::cerr <<"fileaction ok\n"<<std::endl;
+
+
+            }
+            emit dialogComplete(true);
+            emit ReturnThisValue(ok);
+
+            deleteLater();
+
+
 
 }
+
 
 
 /*
