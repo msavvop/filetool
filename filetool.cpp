@@ -669,6 +669,7 @@ void filetool::on_action_delete_triggered()
     List=selectedFiles();
     CommandString="delete";
 
+
     Index=indexHistoryList.last();
     List.append(dirModel->filePath(Index));//  carefull because I add the path of the current directory as a last element
                                             //in this list and you do not want to delete that.
@@ -680,6 +681,11 @@ void filetool::on_action_delete_triggered()
 
     if(r==QMessageBox::Yes)
     {
+        CommandString="delete";
+        command.set_UndoRedoCommand(CommandString);
+        command.set_UndoRedoList(List);
+        command.set_UndoRedoSourceDir(SourceStr);
+        command.set_UndoRedoTargetDir(newTargetDirName);
 
         Delete();
 
@@ -690,11 +696,6 @@ void filetool::on_action_delete_triggered()
 
 void filetool::on_action_cut_triggered()
 {
-
-//    QModelIndex Index;
-
-//    Index=indexHistoryList.last();
-//    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm move action"),tr("Are you sure that you want to move %1 items?").arg(selModel->selectedIndexes().size()),
@@ -708,36 +709,12 @@ void filetool::on_action_cut_triggered()
 
         List=selectedFiles();
 
-//         command.set_UndoRedoSourceDir(ParentDir_name);
-//         Source=ParentDir_name;
-
-
-
-
-//       std::cerr<<"AT CUT selected item"<<qPrintable(List.at(0))<<endl;
-/*        QMessageBox *box;
-       for (int i=0;i<List.size();i++)
-       {
-       box->information(this,tr("Size=  %1").arg(List.size()),tr("ok"));
-       box->information(this,tr("List[0]=  %1").arg(List[0]),tr("ok"));
-       }
-       */
-
     }
-
-
-
-
 
 }
 
 void filetool::on_actionC_opy_triggered()
 {
-
-//    QModelIndex Index;
-
-//    Index=indexHistoryList.last();
-//    QString ParentDir_name=dirModel->filePath(Index);
 
     QMessageBox *box1;
     int r=box1->question(this,tr("Confirm copy action"),tr("Are you sure that you want to copy %1 items?").arg(selModel->selectedIndexes().size()),
@@ -746,22 +723,11 @@ void filetool::on_actionC_opy_triggered()
     if(r==QMessageBox::Yes)
     {
         copyIndicator=true;
-//        command.set_UndoRedoSourceDir(ParentDir_name);
-//        Source=ParentDir_name;
 
 
         List.clear();
         List=selectedFiles();
 
-//       std::cerr<<"AT COPY selected item"<<qPrintable(List.at(0))<<endl;
-
-/*        QMessageBox *box;
-        for (int i=0;i<List.size();i++)
-        {
-        box->information(this,tr("Size=  %1").arg(List.size()),tr("ok"));
-        box->information(this,tr("List[0]=  %1").arg(List[0]),tr("ok"));
-        }
-        */
     }
 }
 
@@ -769,7 +735,7 @@ void filetool::on_action_paste_triggered()
 {
     QModelIndex Index;
     UndoRedoRunning=false;
-    QString commandString;
+
 
     if(List.isEmpty())  return;
     QString str=List.at(0);
@@ -784,6 +750,8 @@ void filetool::on_action_paste_triggered()
     Index=indexHistoryList.last();
     QString newname=dirModel->filePath(Index);
     List.append(newname);
+    SourceStr=str;
+    newTargetDirName=newname;
 
     std::cerr <<" AT PASTE CopyList[0]=\t"<<qPrintable( List[0])<<std::endl;
     std::cerr <<" AT PASTE Source\t"<<qPrintable( str)<<std::endl;
@@ -791,48 +759,30 @@ void filetool::on_action_paste_triggered()
 
     if(copyIndicator==true)
     {
-        Copy();
+
         CommandString="copy";
-        SourceStr=str;
-        newTargetDirName=newname;
-
+        command.set_UndoRedoCommand(CommandString);
+        command.set_UndoRedoList(List);
+        command.set_UndoRedoSourceDir(SourceStr);
+        command.set_UndoRedoTargetDir(newTargetDirName);
+         Copy();
 
     }
     else
     {
-        Cut();
+
         CommandString="cut";
-        SourceStr=str;
-        newTargetDirName=newname;
-
+        command.set_UndoRedoCommand(CommandString);
+        command.set_UndoRedoList(List);
+        command.set_UndoRedoSourceDir(SourceStr);
+        command.set_UndoRedoTargetDir(newTargetDirName);
+        Cut();
 
     }
-
-
-/*
-    global_mutex2.lock();
-
-    if(ReturnValue=="")
-    {
-        global_Return_var_set.wait(&global_mutex2);
-    }
-
-    if(ReturnValue=="ok")
-    {
-        UndoRedoCommand(commandString,str,newname);
-        ReturnValue="";
-    }
-    else
-    {
-        ReturnValue="";
-    }
-
-
-
-//    global_Return_var_not_set.wakeOne();
-    global_mutex2.unlock();
-
-*/
+         std::cerr<<"in filetool CommandString= "<<qPrintable(CommandString)<<std::endl;
+         std::cerr<<"in filetool List.at(0)= "<<qPrintable(List.at(0))<<std::endl;
+         std::cerr<<"in filetool SourceStr= "<<qPrintable(SourceStr)<<std::endl;
+         std::cerr<<"in filetool newTargetDirName= "<<qPrintable(newTargetDirName)<<std::endl;
 
 }
 
@@ -951,28 +901,18 @@ void filetool::on_actionRe_do_triggered()
         }
         else if (PreviousObject.get_UndoRedoCommand()=="cut")
         {
-            List.clear();
-            List1= PreviousObject.get_UndoRedoList();
-            SourceDir=PreviousObject.get_UndoRedoSourceDir();
-            TargetDir=PreviousObject.get_UndoRedoTargetDir();
- //            List1.pop_back(); //TargetDir already in List1
- //            List1.append(TargetDir);//TargetDir already in List1
-            List=List1;
+
+            command=PreviousObject;
             Cut();
-            List.clear();
+
 
         }
         else if (PreviousObject.get_UndoRedoCommand()=="copy")
         {
-            List.clear();
-            List1= PreviousObject.get_UndoRedoList();
-            SourceDir=PreviousObject.get_UndoRedoSourceDir();
-            TargetDir=PreviousObject.get_UndoRedoTargetDir();
-//            List1.pop_back(); //TargetDir already in List1
-//            List1.append(TargetDir);//TargetDir already in List1
-            List=List1;
+
+            command=PreviousObject;
             Copy();
-            List.clear();
+
 
 
         }
@@ -1061,28 +1001,17 @@ void filetool::on_actionRe_do_triggered()
         }
         else if (NextObject.get_UndoRedoCommand()=="cut")
         {
-            List.clear();
-            List1= NextObject.get_UndoRedoList();
-            SourceDir=NextObject.get_UndoRedoSourceDir();
-            TargetDir=NextObject.get_UndoRedoTargetDir();
-//            List1.pop_back(); //TargetDir already in List1
-//            List1.append(TargetDir);//TargetDir already in List1
-            List=List1;
+
+            command=NextObject;
             Cut();
-            List.clear();
+
 
         }
         else if (NextObject.get_UndoRedoCommand()=="copy")
         {
-            List.clear();
-            List1= NextObject.get_UndoRedoList();
-            SourceDir=NextObject.get_UndoRedoSourceDir();
-            TargetDir=NextObject.get_UndoRedoTargetDir();
-//            List1.pop_back(); //TargetDir already in List1
-//            List1.append(TargetDir);//TargetDir already in List1
-           List=List1;
+
+           command=NextObject;
             Copy();
-            List.clear();
 
 
         }
@@ -1106,7 +1035,8 @@ void filetool::on_action_undo_triggered()
      QStringList List1;
      QString SourceDir;
      QString TargetDir;
-
+    UndoRedo NextObject1;
+    UndoRedo PreviousObject1;
 
 
 
@@ -1198,6 +1128,8 @@ void filetool::on_action_undo_triggered()
         else if (NextObject.get_UndoRedoCommand()=="cut")
         {
 
+            NextObject1=NextObject;
+
             List.clear();
             List1= NextObject.get_UndoRedoList();
             SourceDir=NextObject.get_UndoRedoSourceDir();
@@ -1214,6 +1146,8 @@ void filetool::on_action_undo_triggered()
             }
             List1.push_back(SourceDir);
             List=List1;
+            NextObject1.set_UndoRedoList(List1);
+            command=NextObject1;
             Cut();
             List.clear();
 
@@ -1221,6 +1155,7 @@ void filetool::on_action_undo_triggered()
         }
         else if (NextObject.get_UndoRedoCommand()=="copy")
         {
+            NextObject1=NextObject;
             List.clear();
 
             List1= NextObject.get_UndoRedoList();
@@ -1238,6 +1173,9 @@ void filetool::on_action_undo_triggered()
             List1.push_back(TargetDir);
             std::cerr<<"name of TargetDir in undo ="<<qPrintable(TargetDir)<<std::endl;
             List=List1;
+            NextObject1.set_UndoRedoList(List1);
+            NextObject1.set_UndoRedoCommand("delete");
+            command=NextObject1;
             Delete();
             List.clear();
 
@@ -1324,6 +1262,8 @@ void filetool::on_action_undo_triggered()
        }
        else if (PreviousObject.get_UndoRedoCommand()=="cut")
        {
+           PreviousObject1=PreviousObject;
+
            List.clear();
            List1= PreviousObject.get_UndoRedoList();
            SourceDir=PreviousObject.get_UndoRedoSourceDir();
@@ -1343,6 +1283,8 @@ void filetool::on_action_undo_triggered()
            List1.push_back(SourceDir);
            std::cerr<<"name of SourceDir in undo ="<<qPrintable(SourceDir)<<std::endl;
            List=List1;
+           PreviousObject1.set_UndoRedoList(List1);
+           command=PreviousObject1;
            Cut();
            List.clear();
 
@@ -1350,6 +1292,8 @@ void filetool::on_action_undo_triggered()
        }
        else if (PreviousObject.get_UndoRedoCommand()=="copy")
        {
+           PreviousObject1=PreviousObject;
+
            List.clear();
 
            List1= PreviousObject.get_UndoRedoList();
@@ -1370,6 +1314,9 @@ void filetool::on_action_undo_triggered()
            List1.push_back(TargetDir);
            std::cerr<<"name of files in undo ="<<qPrintable(TargetDir)<<std::endl;
            List=List1;
+           PreviousObject1.set_UndoRedoList(List1);
+           PreviousObject1.set_UndoRedoCommand("delete");
+           command=PreviousObject1;
            Delete();
            List.clear();
 
@@ -1387,7 +1334,7 @@ void filetool::Delete()
 QString str="delete";
 PasteDialog *DeleteDialog;
 DeleteDialog=new PasteDialog(this);
-DeleteDialog->setAction(str,Source,List);
+DeleteDialog->setAction(command);
 busy=true;
 
 
@@ -1397,7 +1344,7 @@ DeleteDialog->activateWindow();
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
 
-connect(DeleteDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+connect(DeleteDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
 
 
 }
@@ -1408,7 +1355,7 @@ busy=true;
 QString str1="copy";
 PasteDialog *CopyDialog;
 CopyDialog=new PasteDialog(this);
-CopyDialog->setAction(str1,Source,List);
+CopyDialog->setAction(command);
 
  CopyDialog->show();
  CopyDialog->raise();
@@ -1417,7 +1364,8 @@ connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
 connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
 pasteDialog=CopyDialog;
 connect(CopyDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
-connect(CopyDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+//connect(CopyDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+connect(CopyDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
 
 
 
@@ -1430,7 +1378,8 @@ busy=true;
 QString str2="cut";
 PasteDialog *CutDialog;
 CutDialog=new PasteDialog(this);
-CutDialog->setAction(str2,Source,List);
+//CutDialog->setAction(str2,Source,List);
+CutDialog->setAction(command);
 
 
 CutDialog->show();
@@ -1442,7 +1391,8 @@ connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()))
 pasteDialog=CutDialog;
 connect(CutDialog,SIGNAL(file_Exists(QString, QString)),this,SLOT(fileDialog(QString,QString)));
 
-connect(CutDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+//connect(CutDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
+connect(CutDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
 
 
 
@@ -1568,34 +1518,36 @@ QString filetool::getAnswer()
     return Answer;
 }
 
-void filetool::UndoRedoCommandLoad(bool ReturnValue)
+void filetool::UndoRedoCommandLoad(bool ReturnValue,UndoRedo command1)
 {
+    QString CommandString1=command1.get_UndoRedoCommand();
+    QStringList List1=command1.get_UndoRedoList();
+    QString SourceStr1=command1.get_UndoRedoSourceDir();
+    QString newTargetDirName1=command1.get_UndoRedoTargetDir();
+
     if(UndoRedoRunning==false)
     {
         if(ReturnValue==true)
         {
-            if ((CommandString=="copy")||(CommandString=="cut"))
+            if ((CommandString1=="copy")||(CommandString1=="cut"))
             {
-                command.set_UndoRedoCommand(CommandString);
-                std::cerr<<"in filetool CommandString= "<<qPrintable(CommandString)<<std::endl;
-                command.set_UndoRedoList(List);
-                 std::cerr<<"in filetool List.at(0)= "<<qPrintable(List.at(0))<<std::endl;
-                command.set_UndoRedoSourceDir(SourceStr);
-                 std::cerr<<"in filetool SourceStr= "<<qPrintable(SourceStr)<<std::endl;
-                command.set_UndoRedoTargetDir(newTargetDirName);
-                std::cerr<<"in filetool newTargetDirName= "<<qPrintable(newTargetDirName)<<std::endl;
+
+                std::cerr<<"in filetool CommandString= "<<qPrintable(CommandString1)<<std::endl;
+                std::cerr<<"in filetool List.at(0)= "<<qPrintable(List1.at(0))<<std::endl;
+                std::cerr<<"in filetool SourceStr= "<<qPrintable(SourceStr1)<<std::endl;
+                std::cerr<<"in filetool newTargetDirName= "<<qPrintable(newTargetDirName1)<<std::endl;
 
 
 
                 if(undovector.isEmpty())
                 {
-                    undovector.push_back(command);
+                    undovector.push_back(command1);
                     std::cerr<<"in filetool push_back ok (empty) "<<std::endl;
 
                 }
-                else if(command!=undovector.last())
+                else if(command1!=undovector.last())
                 {
-                    undovector.push_back(command);
+                    undovector.push_back(command1);
                     std::cerr<<"in filetool push_back ok (not the same object) "<<std::endl;
 
                 }

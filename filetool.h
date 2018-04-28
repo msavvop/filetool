@@ -17,6 +17,7 @@
 #include<overwritedialog.h>
 #include <QMutex>
 #include <thread.h>
+#include<undoredo.h>
 
 
 
@@ -24,62 +25,6 @@ using std::reference_wrapper;
 
 
 
- class UndoRedo {
-// This class is made for objects that keep information nessesary to undo and redo commands
-
-
-
-private:
-    QString UndoRedoCommand;
-    QString UndoRedoSourceDir;
-    QString UndoRedoTargetDir;
-    QStringList UndoRedoList;
-
-
-public:
-    UndoRedo()
-    {
-        UndoRedoCommand="";
-        UndoRedoSourceDir="";
-        UndoRedoTargetDir="";
-        UndoRedoList.push_back("");
-     }
-
-    QString get_UndoRedoCommand(){return UndoRedoCommand;}
-    QString get_UndoRedoSourceDir(){return UndoRedoSourceDir;}
-    QString get_UndoRedoTargetDir(){return UndoRedoTargetDir;}
-    QStringList get_UndoRedoList(){return UndoRedoList;}
-
-    void set_UndoRedoCommand(QString command1){UndoRedoCommand=command1;}
-    void set_UndoRedoSourceDir(QString Dir){UndoRedoSourceDir=Dir;}
-    void set_UndoRedoTargetDir(QString Dir){UndoRedoTargetDir=Dir;}
-    void set_UndoRedoList(QStringList list)
-    {
-        UndoRedoList=list;
-    }
-    bool operator ==(UndoRedo& object1) const
-    {
-
-        if (UndoRedoCommand!=object1.get_UndoRedoCommand()) return false;
-          if  (UndoRedoSourceDir!=object1.get_UndoRedoSourceDir()) return false;
-           if (UndoRedoTargetDir!=object1.get_UndoRedoTargetDir())return false;
-           if ( UndoRedoList.size()!=object1.get_UndoRedoList().size()) return false;
-
-            for (int i=0; i<UndoRedoList.size();i++)
-            {
-//               if(  QString::compare((UndoRedoList[i]), (object1.get_UndoRedoList().at(i)), Qt::CaseSensitive)!=0) return false;
-                if ((UndoRedoList[i])!=(object1.get_UndoRedoList().at(i))) return false;
-            }
-            return true;
-
-    }
-    bool operator !=(UndoRedo& object1) const
-    {
-        return !(*this==object1);
-    }
-
-
-};
 
 
 
@@ -116,7 +61,7 @@ public slots:
 void fileDialog(QString,QString);
 void setAnswer(QString);
 QString getAnswer();
- void UndoRedoCommandLoad(bool Value);
+ void UndoRedoCommandLoad(bool ,UndoRedo );
 
 private slots:
  void on_listView_activated(const QModelIndex &index);

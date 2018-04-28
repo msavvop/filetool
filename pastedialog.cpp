@@ -22,11 +22,13 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
     ui->setupUi(this);
     pathread= new Thread;
     Answer="";
-    ReturnValue="";
+
     connect(pathread, SIGNAL(valueChanged(int)), ui->progressBar, SLOT(setValue(int )));
     connect(pathread, SIGNAL(dialogComplete(bool)), this, SIGNAL(dialogComplete(bool)));
     connect(pathread,SIGNAL(fileexists( QString,QString)),this,SLOT(FileExists(QString,QString)));
-    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SIGNAL(ReturnThisValue(bool)));
+//    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SIGNAL(ReturnThisValue(bool)));
+    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SLOT(ReturnObjectAndCode(bool)));
+
 //    connect(pathread,SIGNAL(fileexists( QString,QString)),this,SIGNAL(file_Exists( QString,QString)));
 //    connect(pathread, SIGNAL(CloseOverWriteDialog(bool)), this, SIGNAL(CloseOverWriteDialog(bool)));
 
@@ -43,15 +45,18 @@ PasteDialog::~PasteDialog()
 
 
 
-
-void PasteDialog::setAction(QString str,QString Source, QStringList List)
+void PasteDialog::setAction(UndoRedo command)
 {
+    actionString=command.get_UndoRedoCommand();
+    QString Source=command.get_UndoRedoSourceDir();
+    list=command.get_UndoRedoList();
+    ReturnObject=command;
     int Size=0;
-    actionString=str;
-    list=List;
+
+
     for(int i=0;i<list.size()-1;i++)
     {
-        if(str=="delete")
+        if(actionString=="delete")
         {
             ui->label->setText(tr("%1\n  %2").arg(actionString).arg(list.at(i)));
 
@@ -80,7 +85,16 @@ void PasteDialog::setAction(QString str,QString Source, QStringList List)
 
     pathread->start();
 
+
+
 }
+
+void PasteDialog::ReturnObjectAndCode(bool ReturnValue)
+{
+    emit ReturnTheseValues(ReturnValue,ReturnObject);
+}
+
+
 
 void PasteDialog::closeEvent(QCloseEvent *event)
 {
