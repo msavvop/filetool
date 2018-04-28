@@ -35,16 +35,17 @@ and you might lose data if you use undo together with the overwrite.
 I think I will make it similar with the linux file manager.
 I am going to fix that next. It is not difficult to implement it and 
 finally I will, but I am doing this in my free time to learn Qt, so there is no hurry. 
-
-In one of the  previous commits I had fixed the problem with the crash when you press the cancel key to cancel
-ongoing file action, and with the reading of the settings of the previous session.
- As a result the program does not crash when you press the cancel key and it
- remembers the settings of the last session (size etc.)
- In the last commit I rewrote some part of the code that cancels the ongoing file action when the 
- button "cancel" is pressed, so that it is more typical way of handling threads.
  
- In this commit I perfected the undo-redo for copy and move. If you press cancel the copy or move action 
+ In the previous commit I perfected the undo-redo for copy and move. If you press cancel the copy or move action 
  that was interupted  is not going into the undo and redo vectors. if some move or some copy 
  fails it does not go into the undo and redo vectors. It only goes into the undo and redo vectors 
  only if the action finishes with success. That way it is more difficult to lose data.
+ 
+ In this commit I perfected the multithreading of this program. Now it can do simultaneously many
+ "copy" and "move" and "delete" actions  without problem and the undo and redo 
+ work ok with  those actions. (ie start a copy action of  a large directory then start a "cut" 
+ action of an other large directory and then several more. Or choose many files and directories for 
+ each action. Choose large directories so that the first actions do not finish before you add more 
+ actions. That way you can see that it executes many actions simultaneously.) 
+ I also rewrote part of the code to make it more readable.
 

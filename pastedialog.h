@@ -7,7 +7,7 @@
 #include<QEvent>
 #include <QCloseEvent>
 #include <QFileSystemModel>
-
+#include<undoredo.h>
 
 
 class QCloseEvent;
@@ -24,19 +24,22 @@ public:
     explicit PasteDialog(QWidget *parent );
     ~PasteDialog();
 
-    void setAction(QString str, QString Source, QStringList List);
+//    void setAction(QString str, QString Source, QStringList List);
+    void setAction(UndoRedo);
+
 private:
     Ui::PasteDialog *ui;
     Thread *pathread;
     QString actionString;
    QStringList list;
    QString Answer;
-   QString ReturnValue;
+   UndoRedo ReturnObject;
 
 
   public slots:
 
     void on_Cancel_clicked();
+    void ReturnObjectAndCode(bool);
 
 
 void FileExists(QString Source,QString Target);
@@ -53,7 +56,7 @@ void dialogComplete(bool);
 void file_Exists(QString Source,QString Target);
 void sendAnswer(QString);
 void CloseOverWriteDialog(bool);
-void ReturnThisValue(bool);
+void ReturnTheseValues(bool,UndoRedo);
 };
 
 #endif // PASTEDIALOG_H

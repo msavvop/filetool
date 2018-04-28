@@ -16,12 +16,14 @@ SOURCES += main.cpp\
         filetool.cpp \
     pastedialog.cpp \
     thread.cpp \
-    overwritedialog.cpp
+    overwritedialog.cpp \
+    undoredo.cpp
 
 HEADERS  += filetool.h \
     pastedialog.h \
     thread.h \
-    overwritedialog.h
+    overwritedialog.h \
+    undoredo.h
 
 FORMS    += filetool.ui \
     pastedialog.ui \
