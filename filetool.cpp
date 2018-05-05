@@ -687,7 +687,7 @@ void filetool::on_action_delete_triggered()
         command.set_UndoRedoSourceDir(SourceStr);
         command.set_UndoRedoTargetDir(newTargetDirName);
 
-        Delete();
+        MultiDialog();
 
     }
 
@@ -738,11 +738,8 @@ void filetool::on_action_paste_triggered()
 
 
     if(List.isEmpty())  return;
+
     QString str=List.at(0);
-
-
-
-
     QRegExp re=QRegExp("[^/]+$");
     str.remove(re);
     Source=str;
@@ -756,29 +753,32 @@ void filetool::on_action_paste_triggered()
     std::cerr <<" AT PASTE CopyList[0]=\t"<<qPrintable( List[0])<<std::endl;
     std::cerr <<" AT PASTE Source\t"<<qPrintable( str)<<std::endl;
     dirModel->setReadOnly(false);
+    QStringList List1;
+//    List1.append("");
+
 
     if(copyIndicator==true)
     {
 
         CommandString="copy";
-        command.set_UndoRedoCommand(CommandString);
-        command.set_UndoRedoList(List);
-        command.set_UndoRedoSourceDir(SourceStr);
-        command.set_UndoRedoTargetDir(newTargetDirName);
-         Copy();
 
     }
     else
     {
 
         CommandString="cut";
-        command.set_UndoRedoCommand(CommandString);
-        command.set_UndoRedoList(List);
-        command.set_UndoRedoSourceDir(SourceStr);
-        command.set_UndoRedoTargetDir(newTargetDirName);
-        Cut();
+
 
     }
+
+    command.set_UndoRedoCommand(CommandString);
+    command.set_UndoRedoList(List);
+    command.set_UndoRedoSourceDir(SourceStr);
+    command.set_UndoRedoTargetDir(newTargetDirName);
+    command.set_NotOverWrittenList(List1);
+
+    MultiDialog();
+
          std::cerr<<"in filetool CommandString= "<<qPrintable(CommandString)<<std::endl;
          std::cerr<<"in filetool List.at(0)= "<<qPrintable(List.at(0))<<std::endl;
          std::cerr<<"in filetool SourceStr= "<<qPrintable(SourceStr)<<std::endl;
@@ -901,17 +901,44 @@ void filetool::on_actionRe_do_triggered()
         }
         else if (PreviousObject.get_UndoRedoCommand()=="cut")
         {
+            if(PreviousObject.get_NotOverWrittenList().isEmpty())
+            {
+                command=PreviousObject;
+                MultiDialog();
 
-            command=PreviousObject;
-            Cut();
+
+            }
+            else
+            {
+                UndoRedo PreviousObject1=PreviousObject;
+                PreviousObject1.set_UndoRedoCommand("RedoMove");
+                command=PreviousObject1;
+                MultiDialog();
+
+            }
+
 
 
         }
         else if (PreviousObject.get_UndoRedoCommand()=="copy")
         {
+            if(PreviousObject.get_NotOverWrittenList().isEmpty())
+            {
+                command=PreviousObject;
+                MultiDialog();
 
-            command=PreviousObject;
-            Copy();
+
+            }
+            else
+            {
+                UndoRedo PreviousObject1=PreviousObject;
+                PreviousObject1.set_UndoRedoCommand("RedoCopy");
+                command=PreviousObject1;
+                MultiDialog();
+
+            }
+
+
 
 
 
@@ -1001,17 +1028,45 @@ void filetool::on_actionRe_do_triggered()
         }
         else if (NextObject.get_UndoRedoCommand()=="cut")
         {
+            if(NextObject.get_NotOverWrittenList().isEmpty())
+            {
+                command=NextObject;
+                MultiDialog();
 
-            command=NextObject;
-            Cut();
+
+            }
+            else
+            {
+                UndoRedo NextObject1=NextObject;
+                NextObject1.set_UndoRedoCommand("RedoMove");
+                command=NextObject1;
+                MultiDialog();
+
+            }
+
+
 
 
         }
         else if (NextObject.get_UndoRedoCommand()=="copy")
         {
+            if(NextObject.get_NotOverWrittenList().isEmpty())
+            {
+                command=NextObject;
+                MultiDialog();
 
-           command=NextObject;
-            Copy();
+
+            }
+            else
+            {
+                UndoRedo NextObject1=NextObject;
+                NextObject1.set_UndoRedoCommand("RedoCopy");
+                command=NextObject1;
+                MultiDialog();
+
+            }
+
+
 
 
         }
@@ -1144,12 +1199,32 @@ void filetool::on_action_undo_triggered()
                 List1[i]=path;
 
             }
+
             List1.push_back(SourceDir);
             List=List1;
             NextObject1.set_UndoRedoList(List1);
-            command=NextObject1;
-            Cut();
-            List.clear();
+            NextObject1.set_UndoRedoSourceDir(TargetDir);
+            NextObject1.set_UndoRedoTargetDir(SourceDir);
+
+            if(NextObject1.get_NotOverWrittenList().isEmpty())
+            {
+                NextObject1.set_UndoRedoCommand("cut");
+
+                command=NextObject1;
+                MultiDialog();
+                List.clear();
+            }
+            else
+            {
+
+                NextObject1.set_UndoRedoCommand("NotOverWrittenUndoMove");
+
+                command=NextObject1;
+                MultiDialog();
+                List.clear();
+
+            }
+
 
 
         }
@@ -1170,14 +1245,32 @@ void filetool::on_action_undo_triggered()
                 List1[i]=path;
             std::cerr<<"name of files in undo ="<<qPrintable(path)<<std::endl;
             }
-            List1.push_back(TargetDir);
-            std::cerr<<"name of TargetDir in undo ="<<qPrintable(TargetDir)<<std::endl;
+            List1.push_back(SourceDir);
+
             List=List1;
             NextObject1.set_UndoRedoList(List1);
-            NextObject1.set_UndoRedoCommand("delete");
-            command=NextObject1;
-            Delete();
-            List.clear();
+            NextObject1.set_UndoRedoSourceDir(TargetDir);
+            NextObject1.set_UndoRedoTargetDir(SourceDir);
+            std::cerr<<"name of TargetDir in undo ="<<qPrintable(SourceDir)<<std::endl;
+
+            if(NextObject1.get_NotOverWrittenList().isEmpty())
+            {
+
+                NextObject1.set_UndoRedoCommand("delete");
+                command=NextObject1;
+                MultiDialog();
+                List.clear();
+            }
+            else
+            {
+
+                NextObject1.set_UndoRedoCommand("NotOverWrittenUndoCopy");
+                command=NextObject1;
+                MultiDialog();
+                List.clear();
+
+            }
+
 
         }
 
@@ -1280,13 +1373,33 @@ void filetool::on_action_undo_triggered()
 
            }
 
+
            List1.push_back(SourceDir);
            std::cerr<<"name of SourceDir in undo ="<<qPrintable(SourceDir)<<std::endl;
            List=List1;
            PreviousObject1.set_UndoRedoList(List1);
-           command=PreviousObject1;
-           Cut();
-           List.clear();
+           PreviousObject1.set_UndoRedoSourceDir(TargetDir);
+           PreviousObject1.set_UndoRedoTargetDir(SourceDir);
+
+           if(PreviousObject1.get_NotOverWrittenList().isEmpty())
+           {
+               PreviousObject1.set_UndoRedoCommand("cut");
+               command=PreviousObject1;
+               MultiDialog();
+               List.clear();
+           }
+           else
+           {
+
+
+               PreviousObject1.set_UndoRedoCommand("NotOverWrittenUndoMove");
+               command=PreviousObject1;
+               MultiDialog();
+               List.clear();
+
+           }
+
+
 
 
        }
@@ -1311,14 +1424,31 @@ void filetool::on_action_undo_triggered()
 
            }
 
-           List1.push_back(TargetDir);
-           std::cerr<<"name of files in undo ="<<qPrintable(TargetDir)<<std::endl;
+           List1.push_back(SourceDir);
+
            List=List1;
            PreviousObject1.set_UndoRedoList(List1);
-           PreviousObject1.set_UndoRedoCommand("delete");
-           command=PreviousObject1;
-           Delete();
-           List.clear();
+           PreviousObject1.set_UndoRedoSourceDir(TargetDir);
+           PreviousObject1.set_UndoRedoTargetDir(SourceDir);
+            std::cerr<<"name of TargetDir in undo ="<<qPrintable(SourceDir)<<std::endl;
+
+           if(PreviousObject1.get_NotOverWrittenList().isEmpty())
+           {
+               PreviousObject1.set_UndoRedoCommand("delete");
+               command=PreviousObject1;
+               MultiDialog();
+               List.clear();
+           }
+           else
+           {
+
+               PreviousObject1.set_UndoRedoCommand("NotOverWrittenUndoCopy");
+               command=PreviousObject1;
+               MultiDialog();
+               List.clear();
+
+           }
+
 
        }
     }
@@ -1329,78 +1459,30 @@ void filetool::on_action_undo_triggered()
 }
 
 
-void filetool::Delete()
+void filetool::MultiDialog()
 {
-QString str="delete";
-PasteDialog *DeleteDialog;
-DeleteDialog=new PasteDialog(this);
-DeleteDialog->setAction(command);
+
+PasteDialog *MultiDialog;
+MultiDialog=new PasteDialog(this);
+MultiDialog->setAction(command);
 busy=true;
 
+MultiDialog->show();
+MultiDialog->raise();
+MultiDialog->activateWindow();
 
-DeleteDialog->show();
-DeleteDialog->raise();
-DeleteDialog->activateWindow();
-connect(DeleteDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-connect(DeleteDialog, SIGNAL(dialogComplete(bool)), DeleteDialog, SLOT(deleteLater()));
+//    MultiDialog->exec();
 
-connect(DeleteDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
-
+connect(MultiDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
+connect(MultiDialog, SIGNAL(dialogComplete(bool)), MultiDialog, SLOT(deleteLater()));
+pasteDialog=MultiDialog;
+connect(MultiDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
+connect(MultiDialog,SIGNAL(ReturnTheseValues(bool,QStringList,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,QStringList,UndoRedo)));
 
 }
 
-void filetool::Copy()
-{
-busy=true;
-QString str1="copy";
-PasteDialog *CopyDialog;
-CopyDialog=new PasteDialog(this);
-CopyDialog->setAction(command);
-
- CopyDialog->show();
- CopyDialog->raise();
-CopyDialog->activateWindow();
-connect(CopyDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-connect(CopyDialog, SIGNAL(dialogComplete(bool)), CopyDialog, SLOT(deleteLater()));
-pasteDialog=CopyDialog;
-connect(CopyDialog,SIGNAL(file_Exists(QString,QString)),this,SLOT(fileDialog(QString,QString)));
-//connect(CopyDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
-connect(CopyDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
 
 
-
-
-}
-
-void filetool::Cut()
-{
-busy=true;
-QString str2="cut";
-PasteDialog *CutDialog;
-CutDialog=new PasteDialog(this);
-//CutDialog->setAction(str2,Source,List);
-CutDialog->setAction(command);
-
-
-CutDialog->show();
-CutDialog->raise();
-CutDialog->activateWindow();
-connect(CutDialog, SIGNAL(dialogComplete(bool)), this, SLOT(setNOTBusy()));
-connect(CutDialog, SIGNAL(dialogComplete(bool)), CutDialog, SLOT(deleteLater()));
-
-pasteDialog=CutDialog;
-connect(CutDialog,SIGNAL(file_Exists(QString, QString)),this,SLOT(fileDialog(QString,QString)));
-
-//connect(CutDialog,SIGNAL(ReturnThisValue(bool)),this,SLOT(UndoRedoCommandLoad(bool)));
-connect(CutDialog,SIGNAL(ReturnTheseValues(bool,UndoRedo)),this,SLOT(UndoRedoCommandLoad(bool,UndoRedo)));
-
-
-
-
-
-
-//    CutDialog->exec();
-}
 void filetool::createContextMenu()
 {
 ui->listView->addAction(ui->actionC_opy);
@@ -1518,12 +1600,14 @@ QString filetool::getAnswer()
     return Answer;
 }
 
-void filetool::UndoRedoCommandLoad(bool ReturnValue,UndoRedo command1)
+void filetool::UndoRedoCommandLoad(bool ReturnValue,QStringList NotOverWrittenList1, UndoRedo command1)
 {
     QString CommandString1=command1.get_UndoRedoCommand();
     QStringList List1=command1.get_UndoRedoList();
     QString SourceStr1=command1.get_UndoRedoSourceDir();
     QString newTargetDirName1=command1.get_UndoRedoTargetDir();
+    command1.get_NotOverWrittenList().clear();
+    command1.set_NotOverWrittenList(NotOverWrittenList1);
 
     if(UndoRedoRunning==false)
     {

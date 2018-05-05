@@ -43,9 +43,8 @@ public:
 
     QStringList selectedFiles();
     QModelIndex parentDir();
-    void Delete();
-    void Copy();
-    void Cut();
+    void MultiDialog();
+
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
@@ -61,7 +60,7 @@ public slots:
 void fileDialog(QString,QString);
 void setAnswer(QString);
 QString getAnswer();
- void UndoRedoCommandLoad(bool ,UndoRedo );
+ void UndoRedoCommandLoad(bool ,QStringList, UndoRedo );
 
 private slots:
  void on_listView_activated(const QModelIndex &index);

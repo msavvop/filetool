@@ -32,6 +32,7 @@ private:
     Thread *pathread;
     QString actionString;
    QStringList list;
+   QStringList list1;
    QString Answer;
    UndoRedo ReturnObject;
 
@@ -39,7 +40,7 @@ private:
   public slots:
 
     void on_Cancel_clicked();
-    void ReturnObjectAndCode(bool);
+    void ReturnObjectAndCode(bool,QStringList);
 
 
 void FileExists(QString Source,QString Target);
@@ -56,7 +57,7 @@ void dialogComplete(bool);
 void file_Exists(QString Source,QString Target);
 void sendAnswer(QString);
 void CloseOverWriteDialog(bool);
-void ReturnTheseValues(bool,UndoRedo);
+void ReturnTheseValues(bool,QStringList,UndoRedo);
 };
 
 #endif // PASTEDIALOG_H

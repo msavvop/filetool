@@ -27,7 +27,7 @@ PasteDialog::PasteDialog(QWidget *parent = 0) :
     connect(pathread, SIGNAL(dialogComplete(bool)), this, SIGNAL(dialogComplete(bool)));
     connect(pathread,SIGNAL(fileexists( QString,QString)),this,SLOT(FileExists(QString,QString)));
 //    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SIGNAL(ReturnThisValue(bool)));
-    connect(pathread,SIGNAL(ReturnThisValue(bool)),this,SLOT(ReturnObjectAndCode(bool)));
+    connect(pathread,SIGNAL(ReturnTheseValues(bool,QStringList)),this,SLOT(ReturnObjectAndCode(bool,QStringList)));
 
 //    connect(pathread,SIGNAL(fileexists( QString,QString)),this,SIGNAL(file_Exists( QString,QString)));
 //    connect(pathread, SIGNAL(CloseOverWriteDialog(bool)), this, SIGNAL(CloseOverWriteDialog(bool)));
@@ -50,6 +50,7 @@ void PasteDialog::setAction(UndoRedo command)
     actionString=command.get_UndoRedoCommand();
     QString Source=command.get_UndoRedoSourceDir();
     list=command.get_UndoRedoList();
+    list1=command.get_NotOverWrittenList();
     ReturnObject=command;
     int Size=0;
 
@@ -73,7 +74,7 @@ void PasteDialog::setAction(UndoRedo command)
 
 
 
-    pathread->setthread(actionString,Source,list);
+    pathread->setthread(actionString,Source,list,list1);
     Size=pathread->showSize();
      std::cerr <<"In dialog Size= \t"<<Size<<std::endl;
      ui->progressBar->setRange(0,Size );
@@ -89,9 +90,9 @@ void PasteDialog::setAction(UndoRedo command)
 
 }
 
-void PasteDialog::ReturnObjectAndCode(bool ReturnValue)
+void PasteDialog::ReturnObjectAndCode(bool ReturnValue,QStringList NotOverWrittenList)
 {
-    emit ReturnTheseValues(ReturnValue,ReturnObject);
+    emit ReturnTheseValues(ReturnValue,NotOverWrittenList, ReturnObject);
 }
 
 
