@@ -24,6 +24,7 @@ Thread::Thread()
       YesToAll=false;
       HowManyThreads++;
       Answer="";
+      NotOverWritten.clear();
       dirModel=new QFileSystemModel;
       dirModel2=new QDirModel;
 
@@ -32,11 +33,12 @@ Thread::Thread()
 
 
 
-void Thread::setthread(QString ActionString, QString source,QStringList list)
+void Thread::setthread(QString ActionString, QString source,QStringList list, QStringList list1)
 {
     ActionStr=ActionString;
     List=list;
     Source=source;
+    NotOverWrittenList=list1;
 //    std::cerr<<"AT SETTHREAD selected item"<<qPrintable(List.at(0))<<endl;
 }
 
@@ -45,6 +47,8 @@ void Thread::run()
 {
 
     bool ok;
+
+
    
 
             ok=fileaction(ActionStr,Source,List);
@@ -63,7 +67,7 @@ void Thread::run()
 
             }
             emit dialogComplete(true);
-            emit ReturnThisValue(ok);
+            emit ReturnTheseValues(ok,NotOverWrittenList);
 
             deleteLater();
 
@@ -129,7 +133,27 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
     QModelIndex Index;
     QModelIndexList *copyList=new QModelIndexList;
     QModelIndexList *moveList=new QModelIndexList;
+
      bool ok;
+
+     Watcher=new QFileSystemWatcher;
+     QRegExp re=QRegExp("[^/]+$");
+
+
+     QString string1=Source;
+//     string1.remove(re);
+
+     QString string2=List.at(0);
+     string2.remove(re);
+
+     QString string3=List.last();
+//     string3.remove(re);
+
+
+
+     std::cerr <<"fileaction string1=\t"<<qPrintable(string1)<<std::endl;
+     std::cerr <<"fileaction string2=\t"<<qPrintable(string2)<<std::endl;
+     std::cerr <<"fileaction string3=\t"<<qPrintable(string3)<<std::endl;
 
      count=0;
       Size=0;
@@ -137,263 +161,87 @@ bool Thread::fileaction(QString ActionStr, QString Source, QStringList List)
 
     if(ActionStr=="delete")
     {
+        QModelIndex SourceIndex=dirModel->index(Source);
 
-        index=dirModel->index(List[0]);
-
-        if (!index.isValid())      return false; // to avoid something like rm -rf *
-
-
-
-            for (int i=0;i<(List.size())-1;i++)
-
-            {
-
-                if (this->isInterruptionRequested())
-                {
-
-                     std::cerr <<"Delete Failed"<<std::endl;
-
-                    return false;
-                }
-
-/*
-                if (stopped)
-                {
-                     std::cerr <<"Delete Failed"<<std::endl;
-
-                    return false;
-                }
-
-*/
-
-
-                index=dirModel->index(List[i]);
-
-
-                if (!index.isValid())      continue;
-
-
-                if (dirModel->fileInfo(index).isDir())
-                {
-                    if(index.isValid())
-                    {
-                         std::cerr <<"Deleting\t"<<qPrintable( List[i])<<"\tin FileAction"<<std::endl;
-                        ok = dirModel->remove(index);
-                    }
-                }
-                else
-                {
-                    if(index.isValid())
-                    {
-                         std::cerr <<"Deleting\t"<<qPrintable( List[i])<<"\tin FileAction"<<std::endl;
-                        ok = dirModel->remove(index);
-                    }
-                }
+        for(int i=0;i<(List.size())-1;i++)
+        {
+            std::cerr <<"Copy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
 
 
 
-                count++;
+             QModelIndex indexTemp=dirModel->index(List[i]);
+              if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+            copyList->push_back(  indexTemp );
+            std::cerr <<"Copy List size=\t"<<copyList->size()<<std::endl;
+            std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
 
 
+        }
 
-                emit valueChanged(count);
-
-
-                 if(!ok) std::cerr <<"Remove Failed\n"<<std::endl;
-            }
-
-
-
+        if (copyList->isEmpty())
+        {
+            std::cerr<< "invalid copyList in copy"<<std::endl;
+            return false;   // To avoid cp -rf *
+        }
 
 
+        ok=del(SourceIndex,copyList);
+         if(!ok) std::cerr <<"Remove Failed\n"<<std::endl;
+
+
+        Watcher->removePath(string2);
+
+        Watcher->deleteLater();
         return true;
 
     }
     else if(ActionStr=="copy")
     {
 
-        std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
-        std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
-        std::cerr <<"Copy List[1]=\t"<<qPrintable( List[1])<<std::endl;
-        dirModel->setReadOnly(false);
+        ok=ActionCopy(Source,List);
+        Watcher->deleteLater();
+        return ok;
 
-
-        StrIndex=List.last();
-
-        Index=dirModel->index(StrIndex);
-
-
-
-               for(int i=0;i<(List.size())-1;i++)
-               {
-                   std::cerr <<"Copy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
-
-
-
-                    QModelIndex indexTemp=dirModel->index(List[i]);
-                     if (!indexTemp.isValid())      continue;// To avoid cp -rf *
-
-                   copyList->push_back(  indexTemp );
-                   std::cerr <<"Copy List size=\t"<<copyList->size()<<std::endl;
-                   std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
-
-
-               }
-
-               if (copyList->isEmpty())
-               {
-                   std::cerr<< "invalid copyList in copy"<<std::endl;
-                   return false;   // To avoid cp -rf *
-               }
-
-
-
-               ok=copy(Index,copyList);
-
-                if(!ok)
-                {
-                    std::cerr <<"Copy Failed in fileaction\n"<<std::endl;
-                    return false;
-                }
-
-                return true;
     }
     else if (ActionStr=="cut")
     {
-
-/*
-        dirModel->setReadOnly(false);
-
-
-        StrIndex=List.last();
-
-        Index=dirModel->index(StrIndex);
-
-        ok=dirModel->supportedDropActions().testFlag(Qt::MoveAction);
-        if(!ok)
-        {
-
-             std::cerr <<"Move2 Failed\n"<<std::endl;
-
-            return true;
-        }
-
-
-
-        for(int i=0;i<(List.size())-1;i++)
-        {
-
-
- //            std::cerr <<"list\n"<<qPrintable(dirModel->filePath(List[i]))<<std::endl;
-            QModelIndex indexTemp=dirModel->index(List[i]);
-
-            if (!indexTemp.isValid())      continue;// to avoid mv -rf *
-
-           copyList->push_back(  indexTemp );
-
-
-           std::cerr <<"Cut List size=\t"<<copyList->size()<<std::endl;
-           std::cerr <<"Cut List[0]=\t"<<qPrintable( List[0])<<std::endl;
-
-        }
-        if (copyList->isEmpty())
-        {
-            std::cerr<< "invalid copyList in move"<<std::endl;
-            return  false;         // to avoid mv -rf *
-        }
-
-
-
-        ok = dirModel->dropMimeData(dirModel->mimeData(*copyList),Qt::MoveAction,-1,-1,Index);
-
-
-        if(!ok)
-        {
- //           std::cerr <<"Move Failed\n"<<std::endl;
-
-              ok=fileaction("copy",List);
-              if (!ok)
-              {
-                  std::cerr <<"Copy in Move Failed\n"<<std::endl;
-                  return false;
-              }
-
-              ok=fileaction("delete",List);
-              if (!ok)
-              {
-                  std::cerr <<"delete in Move Failed\n"<<std::endl;
-                  return false;
-              }
-        } else
-        {
-            emit valueChanged(Size);
-        }
-
-
-        return true;
+        ok=ActionMove(Source,List);
+        Watcher->deleteLater();
+        return ok;
     }
+     else if (ActionStr=="NotOverWrittenUndoMove")
+    {
+        ok=ActionNotOverWrittenUndoMove(Source,List);
+        Watcher->deleteLater();
+        return ok;
 
-    std::cerr <<"if Failed"<<std::endl;
-
-    return false;
-    */
-
-        std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
-        std::cerr <<"Move List[0]=\t"<<qPrintable( List[0])<<std::endl;
-        std::cerr <<"Move List[1]=\t"<<qPrintable( List[1])<<std::endl;
-        dirModel->setReadOnly(false);
-
-
-        StrIndex=List.last();
-
-        Index=dirModel->index(StrIndex);
+    }
+    else if (ActionStr=="NotOverWrittenUndoCopy")
+   {
+        ok=ActionNotOverWrittenUndoCopy(Source,List);
+        Watcher->deleteLater();
+        return ok;
 
 
 
-               for(int i=0;i<(List.size())-1;i++)
-               {
-                   std::cerr <<"Move\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
-
-
-
-                    QModelIndex indexTemp=dirModel->index(List[i]);
-                     if (!indexTemp.isValid())      continue;// To avoid mv -rf *
-
-                   moveList->push_back(  indexTemp );
-                   std::cerr <<"Move List size=\t"<<moveList->size()<<std::endl;
-                   std::cerr <<"Move List[0]=\t"<<qPrintable( List[0])<<std::endl;
-
-
-               }
-
-               if (moveList->isEmpty())
-               {
-                   std::cerr<< "invalid moveList in move"<<std::endl;
-                   return false;   // To avoid mv -rf *
-               }
-
-
-
-               ok=move(Index,moveList);
-
-                if(!ok)
-                {
-                    std::cerr <<"Move Failed\n"<<std::endl;
-                    return false;
-                }
-
-                    QModelIndex SourceIndex=dirModel->index(Source);
-                    ok=DeleteEmptyDirs(SourceIndex,moveList);
-
-                    if(!ok)
-                    {
-                        std::cerr <<"Some Source directories are not deleted"<<std::endl;
-
-                    }
-
-                return true;
+    }
+    else if (ActionStr=="RedoMove")
+    {
+        NoToAll=true;
+        ok=ActionMove(Source,List);
+        Watcher->deleteLater();
+        return ok;
+    }
+    else if (ActionStr=="RedoCopy")
+    {
+        NoToAll=true;
+        ok=ActionCopy(Source,List);
+        Watcher->deleteLater();
+        return ok;
     }
 }
+
 
 bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 {
@@ -403,7 +251,8 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
     dirModel->setReadOnly(false);
 
-
+    QString string2=dirModel->filePath(targetIndex);
+//    Watcher->addPath(string2);
 
     bool ok=false;
     ok=dirModel->supportedDropActions().testFlag(Qt::CopyAction);
@@ -450,11 +299,12 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index"<<qPrintable(index.row())<<std::endl;
+                std::cerr <<"Invalid index in copy"<<std::endl;
 
-                return 0;
+                return false;
             }
-
+            QString string1=dirModel->filePath(index);
+//            Watcher->addPath(string1);
 
 
 
@@ -475,6 +325,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
                 std::cerr <<"in isDir Copy\t Dir\t "<<qPrintable(dirName)<<std::endl;
                 const QString path=dirModel->filePath(index);
+                Watcher->addPath(dirTarget);
 
 
                 if (!(dirModel->fileInfo(dirTargetIndex).exists()))
@@ -493,6 +344,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                  }
                 else
                 {
+                     std::cerr<<"in else dir exists"<<std::endl;
 
 
                     newTargetIndex=dirTargetIndex;
@@ -568,6 +420,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                     QModelIndex targetIndexTemp=dirModel->index(TargetTemp);
                     targetIndexTempSet=targetIndexTemp;
 
+                    NotOverWritten=TargetTemp;//takes all files but gets appended to the List only of answer is No or NoToAll
 
 
 
@@ -624,6 +477,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                         }
                          else if (NoToAll)
                         {
+                            NotOverWrittenList.append(NotOverWritten);
                             std::cerr <<"In NoToAll:\tNot Copying file\t "<<qPrintable( path2)<<std::endl;
 
                            Answer="";
@@ -732,12 +586,16 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
 
 
-        }
+
+            }
+
+//            Watcher->removePath(string1);
 
 
         }
 
    }
+//    Watcher->removePath(string2);
 
     return true;
 }
@@ -752,6 +610,8 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
 
     dirModel->setReadOnly(false);
 
+    QString string2=dirModel->filePath(targetIndex);
+//    Watcher->addPath(string2);
 
 
     bool ok=false;
@@ -798,10 +658,12 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index"<<qPrintable(index.row())<<std::endl;
+                std::cerr <<"Invalid index in move"<<std::endl;
 
-                return 0;
+                 return false;
             }
+//            QString string1=dirModel->filePath(index);
+//            Watcher->addPath(string1);
 
 
 
@@ -824,7 +686,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                 std::cerr <<"in isDir Move\t Dir\t "<<qPrintable(dirName)<<std::endl;
                 const QString path=dirModel->filePath(index);
 
-
+                Watcher->addPath(dirTarget);
                 if (!(dirModel->fileInfo(dirTargetIndex).exists()))
                 {
                     std::cerr <<"dirTargetIndex exists"<<qPrintable(dirTargetTemp)<<std::endl;
@@ -841,6 +703,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                  }
                 else
                 {
+                    std::cerr<<"in else dir exists"<<std::endl;
 
 
                     newTargetIndex=dirTargetIndex;
@@ -915,6 +778,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
 
                     QModelIndex targetIndexTemp=dirModel->index(TargetTemp);
                     targetIndexTempSet=targetIndexTemp;
+                    NotOverWritten=TargetTemp;//takes all files but gets appended to the List only of answer is No or NoToAll
 
 
 
@@ -971,6 +835,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                         }
                          else if (NoToAll)
                         {
+                            NotOverWrittenList.append(NotOverWritten);
                             std::cerr <<"In NoToAll:\tNot Moving file\t "<<qPrintable( path2)<<std::endl;
 
                            Answer="";
@@ -1079,12 +944,17 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
 
 
 
+
+            }
+//            Watcher->removePath(string1);
+
+
+
         }
 
+    }
 
-        }
-
-   }
+//    Watcher->removePath(string2);
 
     return true;
 }
@@ -1304,6 +1174,7 @@ bool Thread::ImplementAnswerInCopy()
         }
         if (getAnswer()=="NoToAll")
         {
+            NotOverWrittenList.append(NotOverWritten);
 
             std::cerr <<"In NoToAll:\tNot Copying file\t "<<qPrintable( path2)<<std::endl;
 
@@ -1352,6 +1223,8 @@ bool Thread::ImplementAnswerInCopy()
 
              if(Answer=="No")
                {
+                 NotOverWrittenList.append(NotOverWritten);
+
 
                  std::cerr <<"In NO:\tNot Copying file\t "<<qPrintable( path2)<<std::endl;
 
@@ -1451,6 +1324,8 @@ bool Thread::ImplementAnswerInMove()
         }
         if (getAnswer()=="NoToAll")
         {
+            NotOverWrittenList.append(NotOverWritten);
+
 
             std::cerr <<"In NoToAll:\tNot Moving file\t "<<qPrintable( path2)<<std::endl;
 
@@ -1499,6 +1374,7 @@ bool Thread::ImplementAnswerInMove()
 
              if(Answer=="No")
                {
+                 NotOverWrittenList.append(NotOverWritten);
 
                  std::cerr <<"In NO:\tNot Moving file\t "<<qPrintable( path2)<<std::endl;
 
@@ -1566,18 +1442,6 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 
                 std::cerr <<"in isDir DeleteEmptyDirs\t Dir\t "<<qPrintable(dirName)<<std::endl;
 
-
-
-                QModelIndex newTargetIndex= dirModel->index(path);
-
-
-                if (!newTargetIndex.isValid())
-                {
-                        std::cerr <<"Invalid newTargetIndex"<<qPrintable(newTargetIndex.row())<<std::endl;
-
-                }
-
-
                 QModelIndexList *newSourceList;
                 newSourceList=new QModelIndexList;
 
@@ -1606,15 +1470,14 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 
                 }
 
-                QString dirName2;
-                dirName2=dirModel->filePath(newTargetIndex);
+
 
                 if (newSourceList->isEmpty())
                 {
-                   if (newTargetIndex.isValid())
+                   if (index.isValid())
                    {
-                       dirModel->remove(newTargetIndex);
-                        std::cerr <<"Remove Dir \t"<<qPrintable(dirName2)<<std::endl;
+                       dirModel->remove(index);
+                        std::cerr <<"Remove Dir \t"<<qPrintable(path)<<std::endl;
                         count1++;
                    }
                      continue;
@@ -1623,17 +1486,17 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
                 {
                     ok=false;
 
-                    ok=DeleteEmptyDirs(newTargetIndex,newSourceList);
+                    ok=DeleteEmptyDirs(index,newSourceList);
 
                     QString dirName3;
-                    dirName3=dirModel->filePath(newTargetIndex);
+                    dirName3=dirModel->filePath(index);
 
                     if (ok)
                     {
 
-                        if(newTargetIndex.isValid())
+                        if(index.isValid())
                         {
-                            dirModel->remove(newTargetIndex);
+                            dirModel->remove(index);
                             count1++;
 
                               std::cerr <<"in ok Remove Dir \t"<<qPrintable(dirName3)<<std::endl;
@@ -1683,3 +1546,1179 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 
 
 }
+
+bool Thread::NotOverWrittenDirStructure(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
+{
+
+    QModelIndex newTargetIndex;
+
+    dirModel->setReadOnly(false);
+
+    std::cerr <<"in subroutine NotOverWrittenDirStructure"<<std::endl;
+
+
+    bool ok=false;
+    ok=dirModel->supportedDropActions().testFlag(Qt::CopyAction);
+    if(!ok)
+    {
+
+        return 1;
+    }
+
+
+
+
+    if(!(sourceCopyList->isEmpty()))
+    {
+
+
+        for (int i=0;i<sourceCopyList->size();i++)
+        {
+
+
+            if (this->isInterruptionRequested())
+            {
+
+                std::cerr <<"Create Dirs Failed in subroutine NotOverWrittenDirStructure"<<std::endl;
+
+                return false;
+            }
+
+/*            if (stopped)
+            {
+
+                std::cerr <<"Create Dirs Failed in subroutine NotOverWrittenDirStructure"<<std::endl;
+
+                return false;
+            }
+
+*/
+
+
+
+            QModelIndex index=sourceCopyList->at(i);
+
+
+            if (!index.isValid())
+            {
+                std::cerr <<"Invalid index in NotOverWrittenDirStructure at sourceCopyList("<<qPrintable(i)<<")"<<std::endl;
+
+                return 0;
+            }
+
+
+
+
+            if (dirModel->fileInfo(index).isDir())
+            {
+
+
+                QString dirName;
+                dirName=dirModel->fileName(index);
+
+
+                QString dirTarget=dirModel->filePath(targetIndex);
+                QString dirTargetTemp=dirTarget;
+                std::cerr <<"dirTarget in  NotOverWrittenDirStructure\t "<<qPrintable(dirTarget)<<std::endl;
+
+
+                dirTargetTemp=dirTargetTemp.append("/").append(dirName);
+                dirTargetTemp.replace("//","/");
+                QModelIndex dirTargetIndex=dirModel->index(dirTargetTemp);
+
+
+                std::cerr <<"in isDir NotOverWrittenDirStructure\t Dir\t "<<qPrintable(dirName)<<std::endl;
+                const QString path=dirModel->filePath(index);
+
+
+
+
+                    newTargetIndex=dirModel->mkdir(targetIndex,dirName);
+                    if((newTargetIndex.isValid()))
+                    {
+
+                        std::cerr <<"dirTargetIndex created in  NotOverWrittenDirStructure\t "<<qPrintable(dirTargetTemp)<<std::endl;
+                        count++;
+                        emit valueChanged(count);
+
+                    }
+                    else
+                    {
+                        std::cerr <<"dirTargetIndex creation failed in  NotOverWrittenDirStructure\t "<<qPrintable(dirTargetTemp)<<std::endl;
+
+                    }
+
+
+                    QModelIndexList *newSourceList;
+
+                    newSourceList=new QModelIndexList;
+
+                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
+
+                for(int j=0;j<dirModel2->rowCount(dirModel2->index(path));j++)
+                {
+
+
+                    QModelIndex sourceNewIndex=dirModel2->index(j,0,dirModel2->index(path));
+                    const QString path3=dirModel2->filePath(sourceNewIndex);
+                    QModelIndex newSourceIndex=dirModel->index(path3);
+
+                    if (sourceNewIndex.isValid()) newSourceList->push_back(newSourceIndex);
+                }
+
+                QString str1;
+                for (int k=0;k<newSourceList->size();k++)
+                {
+                    str1.append( dirModel->fileName(newSourceList->at(k)));
+                    str1.append("\n");
+                }
+                    std::cerr <<"list in NotOverWrittenDirStructure\n"<<qPrintable(str1)<<std::endl;
+
+                ok=NotOverWrittenDirStructure(newTargetIndex,newSourceList);
+                if (!ok)
+                {
+
+                    std::cerr <<"NotOverWrittenDirStructure Failed(returned with failure)\n"<<std::endl;
+                    return false;
+
+                }
+
+            }
+
+
+        }
+
+   }
+
+    return true;
+}
+
+
+bool Thread::NotOverWrittenMove(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
+{
+
+    QString TargetPath1=dirModel->filePath(targetIndex);
+    dirModel->setReadOnly(false);
+//    Watcher->addPath(TargetPath1);
+
+
+
+    bool ok=false;
+    ok=dirModel->supportedDropActions().testFlag(Qt::CopyAction);
+    if(!ok)
+    {
+
+        return 1;
+    }
+
+
+
+
+    if(!(sourceCopyList->isEmpty()))
+    {
+
+
+        for (int i=0;i<sourceCopyList->size();i++)
+        {
+
+
+            if (this->isInterruptionRequested())
+            {
+
+                std::cerr <<"Move Failed in subroutine NotOverWrittenMove"<<std::endl;
+
+                return false;
+            }
+
+
+
+
+
+            QModelIndex index=sourceCopyList->at(i);
+
+
+            if (!index.isValid())
+            {
+                std::cerr <<"Invalid index"<<qPrintable(index.row())<<std::endl;
+
+                continue;
+            }
+
+
+
+            QModelIndexList* tempList;
+            tempList=new QModelIndexList;
+            tempList->append(index);
+
+            QString path1=dirModel->filePath(index);
+
+
+            QString str=path1;
+            QString path2;
+
+
+            QRegExp re=QRegExp("[^/]+$");
+            str.remove(re);
+            path2=str;
+            QString TargetDir=dirModel->filePath(targetIndex);
+
+
+            path2=path2.replace(Source,TargetDir+"/");
+            path2=path2.replace("//","/");//Needs a / in order to work correctly
+            QModelIndex newTargetIndex=dirModel->index(path2);
+
+
+
+            if ((index.isValid())&&(targetIndex.isValid()))
+            {
+
+//               Watcher->addPath(path1);
+//               Watcher->addPath(path2);
+
+               ok = dirModel->dropMimeData(dirModel->mimeData(*tempList),Qt::MoveAction,-1,-1,newTargetIndex);
+
+//               Watcher->removePath(path1);
+//               Watcher->removePath(path2);
+             }
+            else
+            {
+                ok=false;
+            }
+
+              if (!ok)
+              {
+                  std::cerr <<"Move Failed in NotOverWrittenMove"<<std::endl;
+
+              }
+              else
+              {
+                  std::cerr<<"Move in NotOverWrittenMove ok"<<std::endl;
+
+              }
+
+               count++;
+
+
+
+
+        }
+
+//        Watcher->removePath(TargetPath1);
+        return true;
+    }
+    else
+    {
+
+//        Watcher->removePath(TargetPath1);
+        return false;
+    }
+}
+bool Thread::ActionMove(QString Source,  QStringList list)
+{
+
+    QModelIndex index;
+    QString StrIndex;
+
+    QModelIndex Index;
+    QModelIndexList *copyList=new QModelIndexList;
+    QModelIndexList *moveList=new QModelIndexList;
+
+     bool ok;
+
+
+     QRegExp re=QRegExp("[^/]+$");
+
+
+     QString string1=Source;
+//     string1.remove(re);
+
+     QString string2=List.at(0);
+     string2.remove(re);
+
+     QString string3=List.last();
+//     string3.remove(re);
+
+
+
+     std::cerr <<"fileaction string1=\t"<<qPrintable(string1)<<std::endl;
+     std::cerr <<"fileaction string2=\t"<<qPrintable(string2)<<std::endl;
+     std::cerr <<"fileaction string3=\t"<<qPrintable(string3)<<std::endl;
+    std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
+    std::cerr <<"Move List[0]=\t"<<qPrintable( List[0])<<std::endl;
+    std::cerr <<"Move List[1]=\t"<<qPrintable( List[1])<<std::endl;
+    dirModel->setReadOnly(false);
+
+
+    StrIndex=List.last();
+
+    Index=dirModel->index(StrIndex);
+
+
+
+           for(int i=0;i<(List.size())-1;i++)
+           {
+               std::cerr <<"Move\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+
+                QModelIndex indexTemp=dirModel->index(List[i]);
+                 if (!indexTemp.isValid())      continue;// To avoid mv -rf *
+
+               moveList->push_back(  indexTemp );
+               std::cerr <<"Move List size=\t"<<moveList->size()<<std::endl;
+               std::cerr <<"Move List[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+           }
+
+           if (moveList->isEmpty())
+           {
+               std::cerr<< "invalid moveList in move"<<std::endl;
+               return false;   // To avoid mv -rf *
+           }
+
+           Watcher->addPath(string1);
+           Watcher->addPath(string3);
+
+           ok=move(Index,moveList);
+
+            if(!ok)
+            {
+                std::cerr <<"Move Failed\n"<<std::endl;
+                return false;
+            }
+
+                QModelIndex SourceIndex=dirModel->index(Source);
+                ok=DeleteEmptyDirs(SourceIndex,moveList);
+
+                if(!ok)
+                {
+                    std::cerr <<"Some Source directories are not deleted"<<std::endl;
+
+                }
+                Watcher->removePath(string1);
+
+                Watcher->removePath(string3);
+
+            return true;
+}
+
+
+bool Thread::ActionCopy(QString Source,  QStringList list)
+{
+    QModelIndex index;
+    QString StrIndex;
+
+    QModelIndex Index;
+    QModelIndexList *copyList=new QModelIndexList;
+    QModelIndexList *moveList=new QModelIndexList;
+
+     bool ok;
+
+
+     QRegExp re=QRegExp("[^/]+$");
+
+
+     QString string1=Source;
+//     string1.remove(re);
+
+     QString string2=List.at(0);
+     string2.remove(re);
+
+     QString string3=List.last();
+//     string3.remove(re);
+
+
+
+     std::cerr <<"fileaction string1=\t"<<qPrintable(string1)<<std::endl;
+     std::cerr <<"fileaction string2=\t"<<qPrintable(string2)<<std::endl;
+     std::cerr <<"fileaction string3=\t"<<qPrintable(string3)<<std::endl;
+    std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
+    std::cerr <<"Move List[0]=\t"<<qPrintable( List[0])<<std::endl;
+    std::cerr <<"Move List[1]=\t"<<qPrintable( List[1])<<std::endl;
+    dirModel->setReadOnly(false);
+
+
+    StrIndex=List.last();
+
+    Index=dirModel->index(StrIndex);
+
+
+
+           for(int i=0;i<(List.size())-1;i++)
+           {
+               std::cerr <<"Copy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+
+                QModelIndex indexTemp=dirModel->index(List[i]);
+                 if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+               copyList->push_back(  indexTemp );
+               std::cerr <<"Copy List size=\t"<<copyList->size()<<std::endl;
+               std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+           }
+
+           if (copyList->isEmpty())
+           {
+               std::cerr<< "invalid copyList in copy"<<std::endl;
+               return false;   // To avoid cp -rf *
+           }
+
+
+           Watcher->addPath(string1);
+           Watcher->addPath(string3);
+
+           ok=copy(Index,copyList);
+
+            if(!ok)
+            {
+                std::cerr <<"Copy Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+            Watcher->removePath(string1);
+
+            Watcher->removePath(string3);
+
+            return true;
+}
+
+
+
+bool Thread::del(QModelIndex& SourceIndex, QModelIndexList *SourceDeleteList)
+{
+    int count1=0;
+
+
+     QDirModel *dirModel3;
+     dirModel3=new QDirModel;
+    count=0;
+     const QString path4=dirModel->filePath(SourceIndex);
+
+    bool ok=false;
+
+
+
+    if(!(SourceDeleteList->isEmpty()))
+    {
+        for (int i=0;i<SourceDeleteList->size();i++)
+        {
+
+
+            if (this->isInterruptionRequested())
+            {
+
+                 std::cerr <<"Delete Failed"<<std::endl;
+
+                return false;
+            }
+
+
+            QModelIndex index=SourceDeleteList->at(i);
+
+
+            if (!index.isValid())
+            {
+                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
+
+                return false;
+            }
+
+
+
+
+            if (dirModel->fileInfo(index).isDir())
+
+
+            {
+                const QString path=dirModel->filePath(index);
+
+
+                Size++;
+
+                QString dirName;
+                dirName=dirModel->fileName(index);
+
+
+
+                std::cerr <<"in isDir Del\t Dir\t "<<qPrintable(dirName)<<std::endl;
+
+
+
+                QModelIndexList *newSourceList;
+                newSourceList=new QModelIndexList;
+
+
+                std::cerr <<"rows: \t"<<qPrintable(dirModel3->rowCount(dirModel3->index(path)))<<std::endl;
+
+
+                for(int j=0;j<dirModel3->rowCount(dirModel3->index(path));j++)
+                {
+
+
+                    QModelIndex sourceNewIndex=dirModel3->index(j,0,dirModel3->index(path));
+                    const QString path3=dirModel3->filePath(sourceNewIndex);
+                    QModelIndex newSourceIndex=dirModel->index(path3);
+
+                    if (sourceNewIndex.isValid()) newSourceList->push_back(newSourceIndex);
+
+                }
+
+                QString str1;
+                for (int k=0;k<newSourceList->size();k++)
+                {
+
+                    str1.append( dirModel->fileName(newSourceList->at(k)));
+                    str1.append("\n");
+
+                }
+
+                if (newSourceList->isEmpty())
+                {
+                   if (index.isValid())
+                   {
+                       dirModel->remove(index);
+                        std::cerr <<"Remove Dir \t"<<qPrintable(path)<<std::endl;
+                        count1++;
+                        count++;
+                         emit valueChanged(count);
+                   }
+                     continue;
+                }
+                else
+                {
+                    ok=false;
+
+                    ok=del(index,newSourceList);
+
+                    QString dirName3;
+                    dirName3=dirModel->filePath(index);
+
+                    if (ok)
+                    {
+
+                        if(index.isValid())
+                        {
+                            dirModel->remove(index);
+                            count1++;
+                            count++;
+                             emit valueChanged(count);
+
+                              std::cerr <<"in ok Remove Dir \t"<<qPrintable(dirName3)<<std::endl;
+                        }
+                    }
+                    else
+                    {
+
+
+                    std::cerr <<"in else in ok Dir \t"<<qPrintable(dirName3)<<"\tNot Empty"<<std::endl;
+                    }
+
+
+                }
+
+
+            }
+            else
+            {
+                if(index.isValid())
+                {
+
+
+                    QString IndexString=dirModel->filePath(index);
+                    dirModel->remove(index);
+
+                        std::cerr <<"removed\t"<<qPrintable(IndexString)<<std::endl;
+
+                        count++;
+                        count1++;
+                        emit valueChanged(count);
+
+
+
+                }
+
+
+
+
+            }
+
+
+        }
+
+   }
+    else
+   {
+            std::cerr<< "invalid copyList in DeleteEmptyDirs"<<std::endl;
+            return true;  //empty
+    }
+
+    if(count1==SourceDeleteList->size())
+    {
+
+        return true; //empty
+    }
+    else
+    {
+
+
+        return false; //not empty
+
+    }
+
+
+}
+
+bool Thread::ActionNotOverWrittenUndoMove(QString Source,  QStringList list)
+{
+    QModelIndex index;
+    QString StrIndex;
+
+    QModelIndex Index;
+    QModelIndexList *copyList=new QModelIndexList;
+    QModelIndexList *moveList=new QModelIndexList;
+
+     bool ok;
+
+
+     QRegExp re=QRegExp("[^/]+$");
+
+
+     QString string1=Source;
+//     string1.remove(re);
+
+     QString string2=List.at(0);
+     string2.remove(re);
+
+     QString string3=List.last();
+//     string3.remove(re);
+
+
+
+     std::cerr <<"fileaction string1=\t"<<qPrintable(string1)<<std::endl;
+     std::cerr <<"fileaction string2=\t"<<qPrintable(string2)<<std::endl;
+     std::cerr <<"fileaction string3=\t"<<qPrintable(string3)<<std::endl;
+
+    YesToAll=true;
+
+
+    std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
+    std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
+    std::cerr <<"Copy List[1]=\t"<<qPrintable( List[1])<<std::endl;
+//        Watcher->addPath(string1);
+//        Watcher->addPath(string2);
+//        Watcher->addPath(string3);
+
+
+    dirModel->setReadOnly(false);
+
+    StrIndex=List.last();
+
+    Index=dirModel->index(StrIndex);
+
+    QString str=Source;
+    str.remove(re);
+
+    QModelIndex ParentIndex=dirModel->index(str);
+    QModelIndex SourceIndex=dirModel->index(Source);
+
+
+    QString newDirName=dirModel->fileName(SourceIndex);
+     std::cerr <<"NotOverWrittenUndoMove in fileaction fileName(SourceIndex)=\t"<<qPrintable(newDirName)<<std::endl;
+
+
+    srand(static_cast<unsigned int>(time(0)));
+    int min=0;
+    int max=1000000;
+    int number=static_cast<int>(static_cast<double>(rand())/RAND_MAX*(max-min)+ min);
+    QString numberString;
+    numberString=str.setNum(number);
+    QString NewStrDir=newDirName+numberString;
+
+
+    QModelIndex newTargetIndex;
+    newTargetIndex= dirModel->mkdir(ParentIndex,NewStrDir);
+    QString NewStrDir2=dirModel->filePath(newTargetIndex);
+    std::cerr <<"fileaction NewStrDir2=\t"<<qPrintable(NewStrDir2)<<std::endl;
+//        Watcher->addPath(NewStrDir2);
+
+    if(!(newTargetIndex.isValid()))
+    {
+        std::cerr <<"NotOverWrittenUndoMove in fileaction not valid NewStrDir=\t"<<qPrintable(NewStrDir)<<std::endl;
+        return false;
+
+    }
+
+
+
+           for(int i=0;i<(List.size())-1;i++)
+           {
+               std::cerr <<"NotOverWrittenUndoMove in fileaction\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+
+                QModelIndex indexTemp=dirModel->index(List[i]);
+                 if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+               copyList->push_back(  indexTemp );
+               std::cerr <<"NotOverWrittenUndoMove in fileaction copyList size=\t"<<copyList->size()<<std::endl;
+               std::cerr <<"NotOverWrittenUndoMove in fileaction copyList[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+           }
+
+           if (copyList->isEmpty())
+           {
+               std::cerr<< "invalid copyList in NotOverWrittenUndoMove in fileaction "<<std::endl;
+               return false;   // To avoid cp -rf *
+           }
+
+           Watcher->addPath(string2);
+           Watcher->addPath(NewStrDir2);
+
+           ok=NotOverWrittenDirStructure(newTargetIndex,copyList);
+
+            if(!ok)
+            {
+                std::cerr <<"NotOverWrittenDirStructure Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+            QModelIndexList * copyList2;
+            copyList2=new QModelIndexList;
+            for(int i=0;i<(NotOverWrittenList.size());i++)
+            {
+                std::cerr <<"NotOverWrittenUndoMove in fileaction\n"<<"Item is \t"<<qPrintable( NotOverWrittenList.at(i))<<std::endl;
+
+
+                 QString path=NotOverWrittenList[i];
+
+                 QModelIndex indexTemp=dirModel->index(path);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList2->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoMove in fileaction CopyList2 size=\t"<<copyList2->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoMove in fileaction CopyList2[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+            }
+
+            if (copyList2->isEmpty())
+            {
+                std::cerr<< "invalid copyList in NotOverWrittenUndoMove in fileaction"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+
+            Watcher->addPath(string2);
+            Watcher->addPath(NewStrDir2);
+
+            ok=NotOverWrittenMove(newTargetIndex,copyList2);
+
+            if(!ok)
+            {
+                std::cerr <<"NotOverWrittenMove Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+
+            QModelIndexList * copyList1;
+            copyList1=new QModelIndexList;
+
+            for(int i=0;i<(List.size())-1;i++)
+            {
+                std::cerr <<"NotOverWrittenUndoMove in fileaction\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+                 QString path=List[i];
+                 path=path.replace( Source,NewStrDir2+"/");
+                 path=path.replace("//","/");//Needs a / in order to work correctly
+
+
+                 QModelIndex indexTemp=dirModel->index(path);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList1->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoMove in fileaction CopyList1 size=\t"<<copyList1->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoMove in fileaction CopyList1[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+            }
+
+            if (copyList1->isEmpty())
+            {
+                std::cerr<< "invalid copyList in NotOverWrittenUndoMove in fileaction"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+            ok=DeleteEmptyDirs(newTargetIndex,copyList1);
+            if(!ok)
+            {
+                std::cerr <<"Some Source directories are not deleted"<<std::endl;
+
+            }
+
+
+
+
+            Watcher->addPath(string1);
+            Watcher->addPath(string3);
+            YesToAll=false;
+            NoToAll=true;
+//                ok = dirModel->dropMimeData(dirModel->mimeData(*copyList),Qt::MoveAction,-1,-1,Index);
+            ok=move(Index,copyList);
+            if(!ok)
+            {
+                std::cerr <<"move in UndoNotOverWritten Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+
+
+
+
+
+            Watcher->addPath(string2);
+            Watcher->addPath(NewStrDir2);
+
+
+
+//                  ok = dirModel->dropMimeData(dirModel->mimeData(*copyList1),Qt::MoveAction,-1,-1,SourceIndex);
+            YesToAll=true;
+            NoToAll=false;
+           ok=move(SourceIndex,copyList1);
+
+           if(!ok)
+           {
+               std::cerr <<"move in NotOverWrittenUndoMove Failed in fileaction\n"<<std::endl;
+               return false;
+           }
+
+           ok=DeleteEmptyDirs(SourceIndex,copyList);
+           if(!ok)
+           {
+               std::cerr <<"Some Source directories are not deleted"<<std::endl;
+
+           }
+
+
+
+            if(newTargetIndex.isValid())
+            {
+                 std::cerr <<"Deleting\t"<<qPrintable( NewStrDir)<<"\tin FileAction"<<std::endl;
+                ok = dirModel->remove(newTargetIndex);
+            }
+
+
+            Watcher->removePath(string1);
+            Watcher->removePath(string2);
+            Watcher->removePath(string3);
+            Watcher->removePath(NewStrDir2);
+            Watcher->deleteLater();
+
+            return true;
+
+
+}
+bool Thread::ActionNotOverWrittenUndoCopy(QString Source,  QStringList list)
+{
+
+    QModelIndex index;
+    QString StrIndex;
+
+    QModelIndex Index;
+    QModelIndexList *copyList=new QModelIndexList;
+    QModelIndexList *moveList=new QModelIndexList;
+
+     bool ok;
+
+
+     QRegExp re=QRegExp("[^/]+$");
+
+
+     QString string1=Source;
+//     string1.remove(re);
+
+     QString string2=List.at(0);
+     string2.remove(re);
+
+     QString string3=List.last();
+//     string3.remove(re);
+
+
+
+     std::cerr <<"fileaction string1=\t"<<qPrintable(string1)<<std::endl;
+     std::cerr <<"fileaction string2=\t"<<qPrintable(string2)<<std::endl;
+     std::cerr <<"fileaction string3=\t"<<qPrintable(string3)<<std::endl;
+
+    //       YesToAll=true;
+
+    std::cerr <<"List size as send=\t"<<List.size()<<std::endl;
+    std::cerr <<"Copy List[0]=\t"<<qPrintable( List[0])<<std::endl;
+    std::cerr <<"Copy List[1]=\t"<<qPrintable( List[1])<<std::endl;
+    dirModel->setReadOnly(false);
+//       Watcher->addPath(string1);
+//       Watcher->addPath(string2);
+//       Watcher->addPath(string3);
+
+    StrIndex=List.last();
+
+    Index=dirModel->index(StrIndex);
+
+    QString str=Source;
+    str.remove(re);
+
+    QModelIndex ParentIndex=dirModel->index(str);
+    QModelIndex SourceIndex=dirModel->index(Source);
+
+
+    QString newDirName=dirModel->fileName(SourceIndex);
+    std::cerr <<"NotOverWrittenUndoCopy in fileaction fileName(SourceIndex)=\t"<<qPrintable(newDirName)<<std::endl;
+
+    srand(static_cast<unsigned int>(time(0)));
+    int min=0;
+    int max=1000000;
+    int number=static_cast<int>(static_cast<double>(rand())/RAND_MAX*(max-min)+ min);
+    QString numberString;
+    numberString=str.setNum(number);
+    QString NewStrDir=newDirName+numberString;
+
+
+
+    QModelIndex newTargetIndex;
+    newTargetIndex= dirModel->mkdir(ParentIndex,NewStrDir);
+    QString NewStrDir2=dirModel->filePath(newTargetIndex);
+    std::cerr <<"fileaction NewStrDir2=\t"<<qPrintable(NewStrDir2)<<std::endl;
+//       Watcher->addPath(NewStrDir2);
+
+    if(!(newTargetIndex.isValid()))
+    {
+        std::cerr <<"NotOverWrittenUndoCopy in fileaction not valid NewStrDir=\t"<<qPrintable(NewStrDir)<<std::endl;
+         return false;
+
+    }
+    else
+    {
+        std::cerr <<"NotOverWrittenUndoCopy in fileaction valid NewStrDir=\t"<<qPrintable(NewStrDir)<<std::endl;
+
+    }
+
+
+           for(int i=0;i<(List.size())-1;i++)
+           {
+               std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+
+                QModelIndex indexTemp=dirModel->index(List[i]);
+                 if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+               copyList->push_back(  indexTemp );
+               std::cerr <<"NotOverWrittenUndoCopy copyList size=\t"<<copyList->size()<<std::endl;
+               std::cerr <<"NotOverWrittenUndoCopy copyList[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+           }
+
+           if (copyList->isEmpty())
+           {
+               std::cerr<< "invalid copyList in NotOverWrittenUndoCopy"<<std::endl;
+               return false;   // To avoid cp -rf *
+           }
+
+
+           Watcher->addPath(string1);
+           Watcher->addPath(NewStrDir2);
+
+           ok=NotOverWrittenDirStructure(newTargetIndex,copyList);
+
+
+            if(!ok)
+            {
+                std::cerr <<"NotOverWrittenDirStructure Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+            QModelIndexList * copyList2;
+            copyList2=new QModelIndexList;
+
+            for(int i=0;i<(NotOverWrittenList.size());i++)
+            {
+                std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( NotOverWrittenList.at(i))<<std::endl;
+
+
+                 QString path=NotOverWrittenList[i];
+
+
+
+                 QModelIndex indexTemp=dirModel->index(path);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList2->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoCopy CopyList2 size=\t"<<copyList2->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoCopy CopyList2[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+            }
+
+            if (copyList2->isEmpty())
+            {
+                std::cerr<< "invalid copyList2 in NotOverWrittenUndoCopy"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+
+            Watcher->addPath(string2);
+            Watcher->addPath(NewStrDir2);
+
+            ok=NotOverWrittenMove(newTargetIndex,copyList2);
+
+
+            Watcher->removePath(string2);
+            Watcher->removePath(NewStrDir2);
+            if(!ok)
+            {
+                std::cerr <<"NotOverWrittenUndoCopy Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+            QModelIndexList * copyList1;
+            copyList1=new QModelIndexList;
+            for(int i=0;i<(List.size())-1;i++)
+            {
+                std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+                 QString path=List[i];
+                 path=path.replace( Source,NewStrDir2+"/");
+                 path=path.replace("//","/");//Needs a / in order to work correctly
+                 std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( path)<<std::endl;
+
+
+                 QModelIndex indexTemp=dirModel->index(path);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList1->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoCopy CopyList1 size=\t"<<copyList1->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoCopy CopyList1[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+            }
+
+            if (copyList1->isEmpty())
+            {
+                std::cerr<< "invalid copyList in NotOverWrittenUndoCopy"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+            ok=DeleteEmptyDirs(newTargetIndex,copyList1);
+            if(!ok)
+            {
+                std::cerr <<"Some Source directories are not deleted"<<std::endl;
+
+            }
+
+            Watcher->addPath(string1);
+            Watcher->addPath(string2);
+
+            QModelIndexList * copyList4;
+            copyList4=new QModelIndexList;
+            for(int i=0;i<(List.size())-1;i++)
+            {
+                std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+
+                 QModelIndex indexTemp=dirModel->index(List[i]);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList4->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoCopy copyList size=\t"<<copyList4->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoCopy copyList[0]=\t"<<qPrintable( List[0])<<std::endl;
+
+
+            }
+
+            if (copyList4->isEmpty())
+            {
+                std::cerr<< "invalid copyList in NotOverWrittenUndoCopy"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+            del(SourceIndex,copyList4);
+
+
+            QModelIndexList * copyList3;
+            copyList3=new QModelIndexList;
+            for(int i=0;i<(List.size())-1;i++)
+            {
+                std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( List.at(i))<<std::endl;
+
+
+                 QString path=List[i];
+                 path=path.replace( Source,NewStrDir2+"/");
+                 path=path.replace("//","/");//Needs a / in order to work correctly
+                 std::cerr <<"NotOverWrittenUndoCopy\n"<<"Item is \t"<<qPrintable( path)<<std::endl;
+
+
+                 QModelIndex indexTemp=dirModel->index(path);
+                  if (!indexTemp.isValid())      continue;// To avoid cp -rf *
+
+                copyList3->push_back(  indexTemp );
+                std::cerr <<"NotOverWrittenUndoCopy CopyList1 size=\t"<<copyList3->size()<<std::endl;
+                std::cerr <<"NotOverWrittenUndoCopy CopyList1[0]=\t"<<qPrintable( path)<<std::endl;
+
+
+            }
+
+            if (copyList3->isEmpty())
+            {
+                std::cerr<< "invalid copyList in NotOverWrittenUndoCopy"<<std::endl;
+                return false;   // To avoid cp -rf *
+            }
+
+            Watcher->addPath(Source);
+            Watcher->addPath(NewStrDir2);
+
+            YesToAll=true;
+            ok = dirModel->dropMimeData(dirModel->mimeData(*copyList3),Qt::MoveAction,-1,-1,SourceIndex);
+
+
+//               ok=move(SourceIndex,copyList3);
+            if(!ok)
+            {
+                std::cerr <<"move in NotOverWrittenUndoCopy Failed in fileaction\n"<<std::endl;
+                return false;
+            }
+
+
+            if(newTargetIndex.isValid())
+            {
+                 std::cerr <<"Deleting\t"<<qPrintable( NewStrDir)<<"\tin FileAction NotOverWrittenUndoCopy"<<std::endl;
+                ok = dirModel->remove(newTargetIndex);
+            }
+
+
+
+
+
+            Watcher->removePath(string1);
+            Watcher->removePath(string2);
+            Watcher->removePath(string3);
+            Watcher->removePath(NewStrDir2);
+            Watcher->deleteLater();
+
+            return true;
+
+}
+
+
+
+

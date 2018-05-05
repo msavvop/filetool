@@ -15,6 +15,7 @@ private:
    QString UndoRedoSourceDir;
    QString UndoRedoTargetDir;
    QStringList UndoRedoList;
+   QStringList NotOverWrittenList;
 
 
 public:
@@ -25,6 +26,7 @@ public:
    QString get_UndoRedoSourceDir(){return UndoRedoSourceDir;}
    QString get_UndoRedoTargetDir(){return UndoRedoTargetDir;}
    QStringList get_UndoRedoList(){return UndoRedoList;}
+   QStringList get_NotOverWrittenList(){return NotOverWrittenList;}
 
    void set_UndoRedoCommand(QString command1){UndoRedoCommand=command1;}
    void set_UndoRedoSourceDir(QString Dir){UndoRedoSourceDir=Dir;}
@@ -32,6 +34,10 @@ public:
    void set_UndoRedoList(QStringList list)
    {
        UndoRedoList=list;
+   }
+   void set_NotOverWrittenList(QStringList list)
+   {
+      NotOverWrittenList=list;
    }
    bool operator ==(UndoRedo& object1) const;
 
