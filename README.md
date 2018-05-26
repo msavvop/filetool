@@ -1,4 +1,4 @@
-## FILETOOL
+# FILETOOL
 
 Filetool is a filesystem explorer tool. It copies files and
 directories, deletes, moves, renames, etc.
