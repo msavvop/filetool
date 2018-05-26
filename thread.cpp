@@ -355,7 +355,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                 if (!newTargetIndex.isValid())
                    {
 
-                      std::cerr <<"Invalid newTargetIndex\t"<<qPrintable(newTargetIndex.row())<<std::endl;
+//                      std::cerr <<"Invalid newTargetIndex\t"<<qPrintable(newTargetIndex.row())<<std::endl;
                       std::cerr <<"newTargetIndexPath is not valid\t"<<qPrintable(newTargetIndexPath)<<std::endl;
 
                    }
@@ -367,7 +367,7 @@ bool Thread::copy(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
                 QModelIndexList *newSourceList;
                 newSourceList=new QModelIndexList;
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
 
                 for(int j=0;j<dirModel2->rowCount(dirModel2->index(path));j++)
                 {
@@ -714,7 +714,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                 if (!newTargetIndex.isValid())
                    {
 
-                      std::cerr <<"Invalid newTargetIndex\t"<<qPrintable(newTargetIndex.row())<<std::endl;
+//                      std::cerr <<"Invalid newTargetIndex\t"<<qPrintable(newTargetIndex.row())<<std::endl;
                       std::cerr <<"newTargetIndexPath is not valid\t"<<qPrintable(newTargetIndexPath)<<std::endl;
 
                    }
@@ -726,7 +726,7 @@ bool Thread::move(QModelIndex targetIndex, QModelIndexList *sourceMoveList)
                 QModelIndexList *newSourceList;
                 newSourceList=new QModelIndexList;
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
 
                 for(int j=0;j<dirModel2->rowCount(dirModel2->index(path));j++)
                 {
@@ -987,7 +987,7 @@ bool Thread::getSize(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
+//                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
 
                 return false;
             }
@@ -1013,14 +1013,14 @@ bool Thread::getSize(QModelIndex targetIndex, QModelIndexList *sourceCopyList)
 
                 if (!newTargetIndex.isValid())
                 {
-                        std::cerr <<"Invalid newTargetIndex"<<qPrintable(newTargetIndex.row())<<std::endl;
+//                        std::cerr <<"Invalid newTargetIndex"<<qPrintable(newTargetIndex.row())<<std::endl;
 
                 }
 
                 QModelIndexList *newSourceList;
                 newSourceList=new QModelIndexList;
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
 
                 for(int j=0;j<dirModel2->rowCount(dirModel2->index(path));j++)
                 {
@@ -1418,7 +1418,7 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
+//                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
 
                 return false;
             }
@@ -1446,7 +1446,7 @@ bool Thread::DeleteEmptyDirs(QModelIndex& SourceIndex, QModelIndexList *SourceDe
                 newSourceList=new QModelIndexList;
 
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel3->rowCount(dirModel3->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel3->rowCount(dirModel3->index(path)))<<std::endl;
 
 
                 for(int j=0;j<dirModel3->rowCount(dirModel3->index(path));j++)
@@ -1601,7 +1601,7 @@ bool Thread::NotOverWrittenDirStructure(QModelIndex targetIndex, QModelIndexList
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index in NotOverWrittenDirStructure at sourceCopyList("<<qPrintable(i)<<")"<<std::endl;
+//                std::cerr <<"Invalid index in NotOverWrittenDirStructure at sourceCopyList("<<qPrintable(i)<<")"<<std::endl;
 
                 return 0;
             }
@@ -1653,7 +1653,7 @@ bool Thread::NotOverWrittenDirStructure(QModelIndex targetIndex, QModelIndexList
 
                     newSourceList=new QModelIndexList;
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel2->rowCount(dirModel2->index(path)))<<std::endl;
 
                 for(int j=0;j<dirModel2->rowCount(dirModel2->index(path));j++)
                 {
@@ -1739,7 +1739,7 @@ bool Thread::NotOverWrittenMove(QModelIndex targetIndex, QModelIndexList *source
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index"<<qPrintable(index.row())<<std::endl;
+//                std::cerr <<"Invalid index"<<qPrintable(index.row())<<std::endl;
 
                 continue;
             }
@@ -2021,7 +2021,7 @@ bool Thread::del(QModelIndex& SourceIndex, QModelIndexList *SourceDeleteList)
 
             if (!index.isValid())
             {
-                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
+//                std::cerr <<"Invalid index\n"<<qPrintable(index.row())<<std::endl;
 
                 return false;
             }
@@ -2051,7 +2051,7 @@ bool Thread::del(QModelIndex& SourceIndex, QModelIndexList *SourceDeleteList)
                 newSourceList=new QModelIndexList;
 
 
-                std::cerr <<"rows: \t"<<qPrintable(dirModel3->rowCount(dirModel3->index(path)))<<std::endl;
+//                std::cerr <<"rows: \t"<<qPrintable(dirModel3->rowCount(dirModel3->index(path)))<<std::endl;
 
 
                 for(int j=0;j<dirModel3->rowCount(dirModel3->index(path));j++)
