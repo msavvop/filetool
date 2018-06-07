@@ -33,3 +33,6 @@ keep the target files at the target -so the source files remained at source) whe
 I also rewrote some parts of code (filaction subroutine etc. to make it more readable)
 
 ##This commit (May 26 2018) compiles with the new Qt 5.11.0 and works fine
+
+##In this commit (June 7, 2018) I added a subroutine to find which OS is used to compile the program 
+and which windows version it is if the OS is windows.

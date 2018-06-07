@@ -61,6 +61,7 @@ void fileDialog(QString,QString);
 void setAnswer(QString);
 QString getAnswer();
  void UndoRedoCommandLoad(bool ,QStringList, UndoRedo );
+ void findSystemTypeAndVersion();
 
 private slots:
  void on_listView_activated(const QModelIndex &index);

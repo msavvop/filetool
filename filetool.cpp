@@ -2,7 +2,8 @@
 
 #include "ui_filetool.h"
 
-
+#include <QDebug>
+#include <QSysInfo>
 #include <QMessageBox>
 #include <string>
 
@@ -87,6 +88,11 @@ filetool::filetool(QWidget *parent) :
     on_listView_clicked(cwdIndex);
     on_listView_activated(cwdIndex);
     on_actionGo_home_triggered();
+
+
+    findSystemTypeAndVersion();
+
+
     createContextMenu();
     ReadSettings();
 
@@ -1646,6 +1652,65 @@ void filetool::UndoRedoCommandLoad(bool ReturnValue,QStringList NotOverWrittenLi
     HowManyThreads--;
     List.clear();
 
+
+
+
+
+}
+void filetool::findSystemTypeAndVersion()
+{
+#ifdef Q_OS_WIN
+   setWindowTitle (tr("Windows filetool")) ;
+
+   if (QSysInfo::windowsVersion() == QSysInfo::WV_XP)
+   {
+       qDebug() << "Windows XP";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_10_0)
+   {
+       qDebug() << "Windows 10!";
+   }
+    else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7)
+   {
+              qDebug() << "Windows 7!";
+   }
+    else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS8)
+   {
+                     qDebug() << "Windows 8!";
+   }
+    else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS8_1)
+   {
+                            qDebug() << "Windows 8.1!";
+   }
+    else if (QSysInfo::windowsVersion() == QSysInfo::WV_10_0)
+   {
+                                   qDebug() << "Windows 10!";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_VISTA)
+   {
+          qDebug() << "Windows Vista!";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_2000)
+   {
+          qDebug() << "Windows 2000!";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_NT)
+   {
+          qDebug() << "Windows NT!";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_95)
+   {
+          qDebug() << "Windows 95!";
+   }
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_98)
+   {
+          qDebug() << "Windows 98!";
+   }
+#elif defined(Q_OS_UNIX)
+   setWindowTitle (tr("Linux filetool")) ;
+#else
+    qDebug() << "This platform is not supported";
+#endif
 
 
 
