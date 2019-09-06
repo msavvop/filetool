@@ -1,11 +1,11 @@
-#Changes
+# Changes
 
-##General
+## General
 At this commit I still need to work on "recycle", and perfect "undo" and "redo". Undo and redo 
 work ok, but the undo rename and undo mkdir and redo rename and redo mkdir have to be implemented. 
 "Rename" works only in table view mode for some reason. 
 
-##History
+## History
 In a previous commit I perfected the undo-redo for "copy" and "move". If you press cancel the copy 
 or move action that was interrupted is not going into the undo and redo vectors. If some move or 
 some copy fails it does not go into the undo and redo vectors. It only goes into the undo and redo 
@@ -19,7 +19,7 @@ each action. Choose large directories so that the first actions do not finish be
 actions. That way you can see that it executes many actions simultaneously.) 
 I also rewrote part of the code to make it more readable. 
 
-##This commit (May 6,2018)
+## This commit (May 6,2018)
 In this commit I rewrote the "delete" command. Now it works better. Have in mind that "delete" is 
 permanent and cannot be undone so be careful because what you delete is deleted permanently and 
 cannot be undone. 
@@ -32,9 +32,12 @@ keep the target files at the target -so the source files remained at source) whe
 
 I also rewrote some parts of code (filaction subroutine etc. to make it more readable)
 
-##This commit (May 26 2018) compiles with the new Qt 5.11.0 and works fine
+## This commit (May 26 2018) 
+compiles with the new Qt 5.11.0 and works fine
 
-##In this commit (June 7, 2018) I added a subroutine to find which OS is used to compile the program 
+## In this commit (June 7, 2018) 
+I added a subroutine to find which OS is used to compile the program 
 and which windows version it is if the OS is windows.
-##In this commit (September 6, 2019) I updated the program to make certain that it works with
-Qt version 5.13.1
+
+## In this commit (September 6, 2019) 
+I updated the program to make certain that it works with Qt version 5.13.1
