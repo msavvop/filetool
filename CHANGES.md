@@ -36,3 +36,5 @@ I also rewrote some parts of code (filaction subroutine etc. to make it more rea
 
 ##In this commit (June 7, 2018) I added a subroutine to find which OS is used to compile the program 
 and which windows version it is if the OS is windows.
+##In this commit (September 6, 2019) I updated the program to make certain that it works with
+Qt version 5.13.1
