@@ -7,6 +7,9 @@
 #include <QMessageBox>
 #include <string>
 
+using namespace std;
+
+
 QMutex global_mutex;
 QWaitCondition global_var_not_set;
 QWaitCondition global_var_set;
@@ -1664,47 +1667,43 @@ void filetool::findSystemTypeAndVersion()
 
    if (QSysInfo::windowsVersion() == QSysInfo::WV_XP)
    {
-       qDebug() << "Windows XP";
+       qDebug() << "Windows XP\n";
    }
-   else if (QSysInfo::windowsVersion() == QSysInfo::WV_10_0)
+   else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7)
    {
-       qDebug() << "Windows 10!";
-   }
-    else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS7)
-   {
-              qDebug() << "Windows 7!";
+              qDebug() << "Windows 7\n";
    }
     else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS8)
    {
-                     qDebug() << "Windows 8!";
+                     qDebug() << "Windows 8\n";
    }
     else if (QSysInfo::windowsVersion() == QSysInfo::WV_WINDOWS8_1)
    {
-                            qDebug() << "Windows 8.1!";
+                            qDebug() << "Windows 8.1\n";
    }
     else if (QSysInfo::windowsVersion() == QSysInfo::WV_10_0)
    {
-                                   qDebug() << "Windows 10!";
+                                   qDebug() << "Windows 10\n";
    }
    else if (QSysInfo::windowsVersion() == QSysInfo::WV_VISTA)
    {
-          qDebug() << "Windows Vista!";
+          qDebug() << "Windows Vista\n";
    }
    else if (QSysInfo::windowsVersion() == QSysInfo::WV_2000)
    {
-          qDebug() << "Windows 2000!";
+          qDebug() << "Windows 2000\n";
    }
    else if (QSysInfo::windowsVersion() == QSysInfo::WV_NT)
    {
-          qDebug() << "Windows NT!";
+          qDebug() << "Windows NT\n";
    }
    else if (QSysInfo::windowsVersion() == QSysInfo::WV_95)
    {
-          qDebug() << "Windows 95!";
+          qDebug() << "Windows 95\n";
    }
    else if (QSysInfo::windowsVersion() == QSysInfo::WV_98)
    {
-          qDebug() << "Windows 98!";
+          qDebug() << "Windows 98\n";
    }
 #elif defined(Q_OS_UNIX)
    setWindowTitle (tr("Linux filetool")) ;
