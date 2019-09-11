@@ -1,7 +1,12 @@
+________________________________________
+# Disclaimer
+## I am creating this program in order to learn coding with Qt. If you decide to use it, you use it at your own risk.
+___________________________________________
+
 # FILETOOL
 
 Filetool is a filesystem explorer tool. It copies files and
-directories, deletes, moves, renames, etc.
+directories, deletes, moves, renames, etc. 
 
 This program is created with Qt. In order to compile it and
 run it you need Qt. You can find Qt in https://www.qt.io/download
@@ -21,4 +26,13 @@ That way you are not in any danger to loose any data,
 and you can restore the system or your data if something unexpected occurs. 
 
 
-It can be compiled with Qt in Windows or Linux. It works ok in both operating systems
+It can be compiled with Qt in Windows or Linux. It works ok in both operating systems.
+
+Since the program is far from complete, 
+## I strongly encourage you to read also the changes.md file
+so that you know it's current state, what is implemented and what is not, known bugs, etc. For example 
+"delete" is working fine but this command is permanent like "rm -rf" in Unix, 
+except that it asks for a confirmation at the beginning. If you delete something 
+it is permanently lost and you cannot "undo" it. I plan to implement the "recycle" command that sends the
+files to the recycle bin but it is not implemented yet. So, be careful with what you delete, 
+and that is one of the reasons I adviced you do have a backup of your system before you run this program.
