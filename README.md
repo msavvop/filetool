@@ -20,8 +20,8 @@ and in this commit or in some future commit it might have some bug.
 There are known bugs because this program is not finished. Even more I am writing this code
 to learn writing code with Qt. So it is at best experimental. 
 ## Thus, you should be careful if you use it, and if you decide to use it you use it at your own risk.
-It is best if you run it in a Virtual Machine with no important data or 
-in a computer with no important data after a backup. 
+It is best if you run it in a Virtual Machine with no important data after creating a snapshot,
+ or in a computer with no important data after a backup. 
 That way you are not in any danger to loose any data,
 and you can restore the system or your data if something unexpected occurs. 
 
